@@ -55,9 +55,9 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-// Indexes
-UserSchema.index({ email: 1 });
-UserSchema.index({ youtubeChannelId: 1 });
+// REMOVED: These duplicate the unique: true in the schema
+// UserSchema.index({ email: 1 });
+// UserSchema.index({ youtubeChannelId: 1 });
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 

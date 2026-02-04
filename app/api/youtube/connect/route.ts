@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db/mongodb";
 import User from "@/models/User";
 import { fetchChannelData } from "@/lib/youtube/fetcher";
@@ -15,11 +16,11 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const accessToken = session.accessToken as string;
+    const accessToken = (session as any).accessToken as string;
 
     if (!accessToken) {
       return NextResponse.json(
-        { error: "No YouTube access token found" },
+        { error: "No YouTube access token found. Please sign in again." },
         { status: 400 }
       );
     }
@@ -35,8 +36,10 @@ export async function POST(request: NextRequest) {
     );
 
     if (!channelResponse.ok) {
+      const errorData = await channelResponse.json();
+      console.error("YouTube API error:", errorData);
       return NextResponse.json(
-        { error: "Failed to fetch YouTube channel" },
+        { error: "Failed to fetch YouTube channel", details: errorData },
         { status: 400 }
       );
     }
