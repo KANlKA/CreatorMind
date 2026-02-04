@@ -1,9 +1,9 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/db/mongodb-client";
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -22,60 +22,70 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  adapter: MongoDBAdapter(clientPromise),
+
+  adapter: MongoDBAdapter(clientPromise) as any,
+
   session: {
     strategy: "jwt",
   },
+
   callbacks: {
     async jwt({ token, account, user }) {
       // Initial sign in
       if (account && user) {
-        return {
-          ...token,
-          accessToken: account.access_token,
-          refreshToken: account.refresh_token,
-          accessTokenExpires: account.expires_at ? account.expires_at * 1000 : 0,
-          userId: user.id,
-        };
-      }
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
+        token.accessTokenExpires = account.expires_at
+          ? account.expires_at * 1000
+          : Date.now();
+        token.userId = user.id;
 
-      // Return previous token if the access token has not expired yet
-      if (Date.now() < (token.accessTokenExpires as number)) {
         return token;
       }
 
-      // Access token has expired, try to update it
+      // If access token still valid
+      if (
+        typeof token.accessTokenExpires === "number" &&
+        Date.now() < token.accessTokenExpires
+      ) {
+        return token;
+      }
+
+
+      // Access token expired
       return refreshAccessToken(token);
     },
+
     async session({ session, token }) {
-      session.user.id = token.userId as string;
-      session.accessToken = token.accessToken as string;
-      session.error = token.error as string | undefined;
+      if (session.user) {
+        session.user.id = token.userId as string;
+      }
+
+      (session as any).accessToken = token.accessToken;
+      (session as any).error = token.error;
 
       return session;
     },
   },
+
   pages: {
     signIn: "/auth/signin",
   },
-};
+} satisfies Parameters<typeof NextAuth>[0];
 
 async function refreshAccessToken(token: any) {
   try {
-    const url =
-      "https://oauth2.googleapis.com/token?" +
-      new URLSearchParams({
+    const response = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
         grant_type: "refresh_token",
         refresh_token: token.refreshToken,
-      });
-
-    const response = await fetch(url, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      method: "POST",
+      }),
     });
 
     const refreshedTokens = await response.json();
@@ -88,7 +98,8 @@ async function refreshAccessToken(token: any) {
       ...token,
       accessToken: refreshedTokens.access_token,
       accessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
-      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
+      refreshToken:
+        refreshedTokens.refresh_token ?? token.refreshToken,
     };
   } catch (error) {
     console.error("Error refreshing access token:", error);
@@ -99,6 +110,7 @@ async function refreshAccessToken(token: any) {
   }
 }
 
-const handler = NextAuth(authOptions);
+const { handlers, auth } = NextAuth(authOptions as any);
 
-export { handler as GET, handler as POST };
+export { handlers as GET, handlers as POST, auth };
+
