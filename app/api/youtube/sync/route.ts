@@ -30,7 +30,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const accessToken = session.accessToken as string;
+    // Use fresh session token first (to avoid expired tokens), fall back to stored token
+    const accessToken = (session as any).accessToken || user.youtubeAccessToken;
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "No access token found. Please reconnect your YouTube channel." },
+        { status: 400 }
+      );
+    }
 
     // Initiate sync
     await initiateChannelSync(

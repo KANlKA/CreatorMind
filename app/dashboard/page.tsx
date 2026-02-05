@@ -178,6 +178,8 @@ function DashboardContent() {
   const [stats, setStats] = useState<any>(null);
   const [insights, setInsights] = useState<any>(null);
   const [ideas, setIdeas] = useState<any>(null);
+  const [syncing, setSyncing] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -201,6 +203,70 @@ function DashboardContent() {
     fetchData();
   }, []);
 
+  const handleRefreshData = async () => {
+    try {
+      setSyncing(true);
+      console.log("[DASHBOARD] Initiating sync...");
+
+      const res = await fetch("/api/youtube/sync", { method: "POST" });
+      const data = await res.json();
+
+      console.log("[DASHBOARD] Sync response:", data);
+
+      if (data.error) {
+        console.error("[DASHBOARD] Sync error:", data.error);
+        alert(`Sync error: ${data.error}`);
+        setSyncing(false);
+        return;
+      }
+
+      if (data.success) {
+        // Poll for sync completion
+        let pollCount = 0;
+        const maxPolls = 100; // 100 * 3 seconds = 5 minutes max
+
+        const checkSync = setInterval(async () => {
+          pollCount++;
+          console.log(`[DASHBOARD] Polling sync status (${pollCount}/${maxPolls})...`);
+
+          try {
+            const statusRes = await fetch("/api/youtube/sync");
+            const statusData = await statusRes.json();
+
+            console.log("[DASHBOARD] Sync status:", statusData);
+
+            if (statusData.syncStatus === "completed") {
+              console.log("[DASHBOARD] Sync completed! Refreshing...");
+              clearInterval(checkSync);
+              setSyncing(false);
+
+              // Refresh the page data
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            } else if (statusData.syncStatus === "failed") {
+              console.error("[DASHBOARD] Sync failed!");
+              clearInterval(checkSync);
+              setSyncing(false);
+              alert("Sync failed. Please try again.");
+            } else if (pollCount >= maxPolls) {
+              console.error("[DASHBOARD] Sync timeout!");
+              clearInterval(checkSync);
+              setSyncing(false);
+              alert("Sync is taking longer than expected. It may still complete in the background.");
+            }
+          } catch (error) {
+            console.error("[DASHBOARD] Error checking sync status:", error);
+          }
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("[DASHBOARD] Error refreshing data:", error);
+      setSyncing(false);
+      alert("Failed to start sync. Please try again.");
+    }
+  };
+
   if (!stats || !insights) {
     return <DashboardSkeleton />;
   }
@@ -208,7 +274,26 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <Button
+            onClick={handleRefreshData}
+            disabled={syncing}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            {syncing ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                Syncing...
+              </>
+            ) : (
+              <>
+                <TrendingUp className="mr-2 h-4 w-4" />
+                Refresh Data
+              </>
+            )}
+          </Button>
+        </div>
 
         {/* Stats Overview */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
