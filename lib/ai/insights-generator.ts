@@ -9,26 +9,22 @@ export async function generateCreatorInsights(userId: string) {
 
   const userObjectId = new mongoose.Types.ObjectId(userId);
 
-  // Fetch all videos
   const videos = await Video.find({ userId: userObjectId });
-
   if (videos.length === 0) {
     throw new Error("No videos found for analysis");
   }
 
-  // Fetch all comments
   const videoIds = videos.map((v) => v._id);
   const comments = await Comment.find({ videoId: { $in: videoIds } });
 
-  // Calculate best formats
-  const formatStats = new Map<string, { total: number; engagement: number; count: number }>();
+  // Best formats
+  const formatStats = new Map<string, { engagement: number; count: number }>();
 
   videos.forEach((video) => {
     const format = video.analysis.format || "general";
-    const current = formatStats.get(format) || { total: 0, engagement: 0, count: 0 };
+    const current = formatStats.get(format) || { engagement: 0, count: 0 };
     formatStats.set(format, {
-      total: current.total + video.engagementRate,
-      engagement: current.engagement + video.engagementRate,
+      engagement: current.engagement + (video.engagementRate || 0),
       count: current.count + 1,
     });
   });
@@ -36,20 +32,20 @@ export async function generateCreatorInsights(userId: string) {
   const bestFormats = Array.from(formatStats.entries())
     .map(([format, stats]) => ({
       format,
-      avgEngagement: stats.engagement / stats.count,
+      avgEngagement: Math.min((stats.engagement / stats.count) || 0, 1),
       count: stats.count,
     }))
     .sort((a, b) => b.avgEngagement - a.avgEngagement);
 
-  // Calculate best topics
-  const topicStats = new Map<string, { videos: number; engagement: number }>();
+  // Best topics
+  const topicStats = new Map<string, { engagement: number; videos: number }>();
 
   videos.forEach((video) => {
     const topic = video.analysis.topic || "general";
-    const current = topicStats.get(topic) || { videos: 0, engagement: 0 };
+    const current = topicStats.get(topic) || { engagement: 0, videos: 0 };
     topicStats.set(topic, {
+      engagement: current.engagement + (video.engagementRate || 0),
       videos: current.videos + 1,
-      engagement: current.engagement + video.engagementRate,
     });
   });
 
@@ -57,18 +53,18 @@ export async function generateCreatorInsights(userId: string) {
     .map(([topic, stats]) => ({
       topic,
       videos: stats.videos,
-      avgEngagement: stats.engagement / stats.videos,
+      avgEngagement: Math.min((stats.engagement / stats.videos) || 0, 1),
     }))
     .sort((a, b) => b.avgEngagement - a.avgEngagement);
 
-  // Calculate best tones
-  const toneStats = new Map<string, { total: number; count: number }>();
+  // Best tones
+  const toneStats = new Map<string, { engagement: number; count: number }>();
 
   videos.forEach((video) => {
     const tone = video.analysis.tone || "general";
-    const current = toneStats.get(tone) || { total: 0, count: 0 };
+    const current = toneStats.get(tone) || { engagement: 0, count: 0 };
     toneStats.set(tone, {
-      total: current.total + video.engagementRate,
+      engagement: current.engagement + (video.engagementRate || 0),
       count: current.count + 1,
     });
   });
@@ -76,18 +72,18 @@ export async function generateCreatorInsights(userId: string) {
   const bestTones = Array.from(toneStats.entries())
     .map(([tone, stats]) => ({
       tone,
-      avgEngagement: stats.total / stats.count,
+      avgEngagement: Math.min((stats.engagement / stats.count) || 0, 1),
     }))
     .sort((a, b) => b.avgEngagement - a.avgEngagement);
 
-  // Calculate best hooks
-  const hookStats = new Map<string, { total: number; count: number }>();
+  // Best hooks
+  const hookStats = new Map<string, { engagement: number; count: number }>();
 
   videos.forEach((video) => {
     const hook = video.analysis.hookType || "general";
-    const current = hookStats.get(hook) || { total: 0, count: 0 };
+    const current = hookStats.get(hook) || { engagement: 0, count: 0 };
     hookStats.set(hook, {
-      total: current.total + video.engagementRate,
+      engagement: current.engagement + (video.engagementRate || 0),
       count: current.count + 1,
     });
   });
@@ -95,94 +91,108 @@ export async function generateCreatorInsights(userId: string) {
   const bestHooks = Array.from(hookStats.entries())
     .map(([hookType, stats]) => ({
       hookType,
-      avgEngagement: stats.total / stats.count,
+      avgEngagement: Math.min((stats.engagement / stats.count) || 0, 1),
     }))
     .sort((a, b) => b.avgEngagement - a.avgEngagement);
 
-  // Calculate best upload time (simplified - using most common day)
   const dayStats = new Map<string, number>();
-  
   videos.forEach((video) => {
-    const day = new Date(video.publishedAt).toLocaleDateString("en-US", {
-      weekday: "long",
-    }).toLowerCase();
+    const day = new Date(video.publishedAt)
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
     dayStats.set(day, (dayStats.get(day) || 0) + 1);
   });
 
-  const bestDay = Array.from(dayStats.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "thursday";
+  const bestDay =
+    Array.from(dayStats.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+    "thursday";
 
-  // Analyze audience
   const intentCounts = new Map<string, number>();
-  
   videos.forEach((video) => {
     const intent = video.analysis.audienceIntent || "learning";
     intentCounts.set(intent, (intentCounts.get(intent) || 0) + 1);
   });
 
-  const primaryIntent = Array.from(intentCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "learning";
+  const primaryIntent =
+    Array.from(intentCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+    "learning";
 
-  // Determine skill level (based on complexity)
   const complexityCounts = new Map<string, number>();
-  
   videos.forEach((video) => {
     const complexity = video.analysis.complexity || "intermediate";
     complexityCounts.set(complexity, (complexityCounts.get(complexity) || 0) + 1);
   });
 
-  const skillLevel = Array.from(complexityCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "intermediate";
+  const skillLevel =
+    Array.from(complexityCounts.entries()).sort((a, b) => b[1] - a[1])[0]
+      ?.[0] || "intermediate";
 
-  // Analyze comments for themes
-  const requestThemes = new Map<string, { mentions: number; videoIds: Set<mongoose.Types.ObjectId> }>();
-  const confusionThemes = new Map<string, number>();
-  const praiseThemes = new Map<string, number>();
+  let topRequests: any[] = [];
+  let confusionAreas: any[] = [];
+  let praisePatterns: any[] = [];
 
-  comments.forEach((comment) => {
-    if (comment.intent === "request" || comment.intent === "question") {
-      comment.topics.forEach((topic) => {
-        const current = requestThemes.get(topic) || { mentions: 0, videoIds: new Set() };
-        current.mentions++;
-        current.videoIds.add(comment.videoId);
-        requestThemes.set(topic, current);
-      });
-    }
+  if (comments.length > 0) {
+    const requestThemes = new Map<
+      string,
+      { mentions: number; videoIds: Set<mongoose.Types.ObjectId> }
+    >();
+    const confusionThemes = new Map<string, number>();
+    const praiseThemes = new Map<string, number>();
 
-    if (comment.intent === "confusion") {
-      comment.topics.forEach((topic) => {
-        confusionThemes.set(topic, (confusionThemes.get(topic) || 0) + 1);
-      });
-    }
+    comments.forEach((comment) => {
+      if (comment.intent === "request" || comment.intent === "question") {
+        comment.topics.forEach((topic) => {
+          const current = requestThemes.get(topic) || {
+            mentions: 0,
+            videoIds: new Set(),
+          };
+          current.mentions++;
+          current.videoIds.add(comment.videoId);
+          requestThemes.set(topic, current);
+        });
+      }
 
-    if (comment.intent === "praise") {
-      comment.topics.forEach((topic) => {
-        praiseThemes.set(topic, (praiseThemes.get(topic) || 0) + 1);
-      });
-    }
-  });
+      if (comment.intent === "confusion") {
+        comment.topics.forEach((topic) => {
+          confusionThemes.set(topic, (confusionThemes.get(topic) || 0) + 1);
+        });
+      }
 
-  const topRequests = Array.from(requestThemes.entries())
-    .map(([theme, data]) => ({
-      theme,
-      mentions: data.mentions,
-      videoIds: Array.from(data.videoIds),
-    }))
-    .sort((a, b) => b.mentions - a.mentions)
-    .slice(0, 10);
+      if (comment.intent === "praise") {
+        comment.topics.forEach((topic) => {
+          praiseThemes.set(topic, (praiseThemes.get(topic) || 0) + 1);
+        });
+      }
+    });
 
-  const confusionAreas = Array.from(confusionThemes.entries())
-    .map(([area, mentions]) => ({ area, mentions }))
-    .sort((a, b) => b.mentions - a.mentions)
-    .slice(0, 5);
+    topRequests = Array.from(requestThemes.entries())
+      .map(([theme, data]) => ({
+        theme,
+        mentions: data.mentions,
+        videoIds: Array.from(data.videoIds),
+      }))
+      .sort((a, b) => b.mentions - a.mentions)
+      .slice(0, 10);
 
-  const praisePatterns = Array.from(praiseThemes.entries())
-    .map(([pattern, mentions]) => ({ pattern, mentions }))
-    .sort((a, b) => b.mentions - a.mentions)
-    .slice(0, 5);
+    confusionAreas = Array.from(confusionThemes.entries())
+      .map(([area, mentions]) => ({ area, mentions }))
+      .sort((a, b) => b.mentions - a.mentions)
+      .slice(0, 5);
 
-  // Engagement quality (based on average comment length and likes)
-  const avgCommentLength = comments.reduce((sum, c) => sum + c.text.length, 0) / comments.length;
-  const engagementQuality = avgCommentLength > 100 ? "high" : avgCommentLength > 50 ? "medium" : "low";
+    praisePatterns = Array.from(praiseThemes.entries())
+      .map(([pattern, mentions]) => ({ pattern, mentions }))
+      .sort((a, b) => b.mentions - a.mentions)
+      .slice(0, 5);
+  }
 
-  // Save insights
+
+  const avgCommentLength =
+    comments.reduce((sum, c) => sum + c.text.length, 0) /
+    (comments.length || 1);
+
+  const engagementQuality =
+    avgCommentLength > 100 ? "high" : avgCommentLength > 50 ? "medium" : "low";
+
   const insights = await CreatorInsight.findOneAndUpdate(
     { userId: userObjectId },
     {
@@ -193,7 +203,7 @@ export async function generateCreatorInsights(userId: string) {
         bestHooks: bestHooks.slice(0, 5),
         bestUploadTimes: {
           dayOfWeek: bestDay,
-          timeOfDay: "14:00", // Default to 2 PM
+          timeOfDay: "14:00",
         },
       },
       audience: {
@@ -201,11 +211,14 @@ export async function generateCreatorInsights(userId: string) {
         skillLevel,
         engagementQuality,
       },
-      commentThemes: {
-        topRequests,
-        confusionAreas,
-        praisePatterns,
-      },
+      commentThemes:
+        comments.length > 0
+          ? {
+               topRequests,
+               confusionAreas,
+               praisePatterns,
+            }
+          : null,
       lastUpdatedAt: new Date(),
     },
     { upsert: true, new: true }

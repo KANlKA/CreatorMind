@@ -1,20 +1,27 @@
 "use client";
-
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const mockAudience = {
-  intents: [
-    { label: "Questions", value: 40 },
-    { label: "Praise", value: 30 },
-    { label: "Requests", value: 20 },
-    { label: "Confusion", value: 10 },
-  ],
-  topRequests: ["AI agents tutorial", "Automation workflows", "Debugging help"],
-  confusionAreas: ["Prompt engineering", "API setup", "LLM architecture"],
-};
-
 export function AudiencePulse() {
-  return (
+    const [data, setData] = useState<any>(null);
+
+    useEffect(() => {
+      fetch("/api/audience-pulse")
+        .then(res => res.json())
+        .then(setData);
+    }, []);
+    const hasAudienceData =
+      data &&
+      (
+        (data.intents && data.intents.length > 0) ||
+        (data.topTopics && data.topTopics.length > 0)
+      );
+
+    if (!hasAudienceData) {
+      return null;
+    }
+
+   return (
     <Card className="mb-8">
       <CardHeader>
         <CardTitle>🤖 Audience Pulse</CardTitle>
@@ -26,9 +33,9 @@ export function AudiencePulse() {
         <div>
           <p className="font-semibold mb-2">Comment Intent Distribution</p>
           <div className="flex gap-3 flex-wrap">
-            {mockAudience.intents.map((item, i) => (
+            {data?.intents?.map(([label, value]: any, i: number) => (
               <div key={i} className="px-3 py-2 bg-muted rounded-lg text-sm">
-                {item.label}: {item.value}%
+               {label}: {value}
               </div>
             ))}
           </div>
@@ -37,21 +44,11 @@ export function AudiencePulse() {
         {/* Top Requests */}
         <div>
           <p className="font-semibold mb-2">🔥 Top Audience Requests</p>
-          {mockAudience.topRequests.map((req, i) => (
+           {data?.topTopics?.map(([topic, count]: any, i: number) => (
             <p key={i} className="text-sm text-muted-foreground">
-              {req}
+              {topic} ({count})
             </p>
-          ))}
-        </div>
-
-        {/* Confusion Areas */}
-        <div>
-          <p className="font-semibold mb-2">⚠️ Confusion Areas</p>
-          {mockAudience.confusionAreas.map((c, i) => (
-            <p key={i} className="text-sm text-muted-foreground">
-              {c}
-            </p>
-          ))}
+           ))}
         </div>
 
       </CardContent>

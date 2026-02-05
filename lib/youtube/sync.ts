@@ -102,11 +102,11 @@ async function syncChannelData(
         const existingVideo = await Video.findOne({ videoId: videoData.videoId });
 
         // Calculate engagement rate
-        const engagementRate =
-          videoData.views > 0
-            ? (videoData.likes + videoData.commentCount) / videoData.views
-            : 0;
+        const rawEngagement =
+          Math.log(videoData.likes + videoData.commentCount + 1) /
+          Math.log(videoData.views + 1);
 
+        const engagementRate = Math.min(rawEngagement, 1);
         let video;
 
         if (existingVideo) {

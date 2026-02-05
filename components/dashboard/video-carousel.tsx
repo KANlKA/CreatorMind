@@ -59,12 +59,21 @@ export function VideoCarousel() {
               className="w-full h-40 object-cover"
             />
             <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-               {((video.engagementRate ?? 0) * 100).toFixed(1)}% ENG
+              {(
+                ((video.likes ?? 0) + (video.commentCount ?? 0)) /
+                Math.max(video.views, 1)
+              * 100
+              ).toFixed(1)}% ENG
             </div>
+
             <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-3 text-white text-sm">
               <p>{video.views.toLocaleString()} views</p>
               <p>
-                 {((video.engagementRate ?? 0) * 100).toFixed(1)}% engagement
+                 {(
+                   ((video.likes ?? 0) + (video.commentCount ?? 0)) /
+                   Math.max(video.views, 1)
+                 * 100
+                 ).toFixed(1)}% engagement
               </p>
               </div>
             <div className="p-3 space-y-1">
