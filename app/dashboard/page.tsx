@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Brain, Video, MessageSquare, TrendingUp, Sparkles } from "lucide-react";
+import { VideoCarousel } from "@/components/dashboard/video-carousel";
+import { AudiencePulse } from "@/components/dashboard/audience-pulse";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -143,7 +145,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
@@ -170,6 +172,13 @@ function DashboardContent() {
             value={ideas?.ideas?.length || 0}
           />
         </div>
+        {/* Video Carousel */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Your Videos</h2>
+          <VideoCarousel />
+        </div>
+        <AudiencePulse />
+
 
         {/* Top Insights */}
         <Card className="mb-8">

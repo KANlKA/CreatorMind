@@ -17,22 +17,22 @@ export function OverviewStats({
   return (
     <div className="grid md:grid-cols-4 gap-6">
       <StatCard
-        icon={<Video className="h-6 w-6 text-blue-600" />}
+        icon={<Video className="h-5 w-5 text-blue-600" />}
         label="Total Videos"
         value={totalVideos.toString()}
       />
       <StatCard
-        icon={<MessageSquare className="h-6 w-6 text-green-600" />}
+        icon={<MessageSquare className="h-5 w-5 text-green-600" />}
         label="Avg Engagement"
         value={`${(avgEngagement * 100).toFixed(1)}%`}
       />
       <StatCard
-        icon={<TrendingUp className="h-6 w-6 text-purple-600" />}
+        icon={<TrendingUp className="h-5 w-5 text-purple-600" />}
         label="Total Views"
         value={totalViews.toLocaleString()}
       />
       <StatCard
-        icon={<Sparkles className="h-6 w-6 text-yellow-600" />}
+        icon={<Sparkles className="h-5 w-5 text-yellow-600" />}
         label="Ideas Generated"
         value={ideasGenerated.toString()}
       />
@@ -50,14 +50,20 @@ function StatCard({
   value: string;
 }) {
   return (
-    <Card>
+    <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-xl bg-gradient-to-br from-background to-muted/30">
       <CardContent className="pt-6">
-        <div className="flex items-center gap-3">
-          {icon}
-          <div>
-            <p className="text-sm text-gray-600">{label}</p>
-            <p className="text-2xl font-bold">{value}</p>
+        <div className="flex items-center gap-4">
+          
+          {/* Icon container */}
+          <div className="p-2 rounded-lg bg-primary/10">
+            {icon}
           </div>
+
+          <div>
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-3xl font-bold tracking-tight">{value}</p>
+          </div>
+
         </div>
       </CardContent>
     </Card>
