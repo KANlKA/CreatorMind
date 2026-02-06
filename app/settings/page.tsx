@@ -1,256 +1,342 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Settings, Mail, Calendar, Clock } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useMemo, useState } from "react";
+
+type Settings = {
+  emailEnabled: boolean;
+  emailFrequency: "weekly" | "biweekly" | "monthly";
+  emailDay: string;
+  emailTime: string;
+  timezone: string;
+  ideaCount: number;
+  preferences?: {
+    focusAreas?: string[];
+    avoidTopics?: string[];
+    preferredFormats?: string[];
+  };
+};
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [settings, setSettings] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [emailStatus, setEmailStatus] = useState<{
+    lastSentAt: string | null;
+    queueCounts: Record<string, number>;
+  } | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch("/api/settings");
-        const data = await res.json();
+    fetch("/api/settings/preferences")
+      .then(res => res.json())
+      .then(data => {
         setSettings(data.settings);
-      } catch (error) {
-        console.error("Error fetching settings:", error);
-      } finally {
-        setLoading(false);
+        setEmailStatus(data.emailStatus || null);
+      });
+  }, []);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const res = await fetch("/api/youtube/history");
+        if (!res.ok) return;
+        const text = await res.text();
+        if (!text) return;
+        const data = JSON.parse(text);
+        setSyncStatus(data.syncStatus || null);
+        setLastSyncedAt(data.lastSyncedAt || null);
+      } catch {
+        // ignore transient parse/network errors
       }
     };
+    loadHistory();
+  }, []);
 
-    if (status === "authenticated") {
-      fetchSettings();
+  const timezones = useMemo(() => {
+    if (typeof Intl !== "undefined" && "supportedValuesOf" in Intl) {
+      return Intl.supportedValuesOf("timeZone") as string[];
     }
-  }, [status]);
+    return [
+      "UTC",
+      "America/New_York",
+      "America/Chicago",
+      "America/Denver",
+      "America/Los_Angeles",
+      "Europe/London",
+      "Europe/Paris",
+      "Asia/Kolkata",
+      "Asia/Singapore",
+      "Australia/Sydney",
+    ];
+  }, []);
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settings }),
-      });
+  if (!settings) return <p>Loading...</p>;
 
-      if (res.ok) {
-        toast.success("Settings saved successfully!");
-      } else {
-        toast.error("Failed to save settings");
-      }
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      toast.error("Failed to save settings");
-    } finally {
-      setSaving(false);
-    }
+  const splitList = (value: string) =>
+    value
+      .split(",")
+      .map(v => v.trim())
+      .filter(Boolean);
+
+  const joinList = (values?: string[]) => (values?.length ? values.join(", ") : "");
+
+  const refreshEmailStatus = async () => {
+    const res = await fetch("/api/settings/preferences");
+    const data = await res.json();
+    setEmailStatus(data.emailStatus || null);
   };
 
-  if (loading) {
-    return <SettingsSkeleton />;
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-3 mb-8">
-          <Settings className="h-8 w-8" />
-          <h1 className="text-3xl font-bold">Settings</h1>
+    <div className="max-w-2xl space-y-6">
+      <h1 className="text-2xl font-bold">Settings</h1>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Email Preferences</h2>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={settings.emailEnabled}
+            onChange={(e) =>
+              setSettings({ ...settings, emailEnabled: e.target.checked })
+            }
+          />
+          Enable weekly email insights
+        </label>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="space-y-1">
+            <span className="text-sm text-gray-600">Frequency</span>
+            <select
+              value={settings.emailFrequency}
+              onChange={(e) =>
+                setSettings({ ...settings, emailFrequency: e.target.value as Settings["emailFrequency"] })
+              }
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Bi-Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm text-gray-600">Day of week</span>
+            <select
+              value={settings.emailDay}
+              onChange={(e) =>
+                setSettings({ ...settings, emailDay: e.target.value })
+              }
+              className="w-full border rounded px-3 py-2"
+            >
+              {["sunday","monday","tuesday","wednesday","thursday","friday","saturday"].map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm text-gray-600">Time of day</span>
+            <input
+              type="time"
+              value={settings.emailTime}
+              onChange={(e) =>
+                setSettings({ ...settings, emailTime: e.target.value })
+              }
+              className="w-full border rounded px-3 py-2"
+            />
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm text-gray-600">Timezone</span>
+            <select
+              value={settings.timezone}
+              onChange={(e) =>
+                setSettings({ ...settings, timezone: e.target.value })
+              }
+              className="w-full border rounded px-3 py-2"
+            >
+              {timezones.map(tz => (
+                <option key={tz} value={tz}>{tz}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm text-gray-600">Number of ideas</span>
+            <select
+              value={settings.ideaCount}
+              onChange={(e) =>
+                setSettings({ ...settings, ideaCount: Number(e.target.value) })
+              }
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value={3}>3 ideas</option>
+              <option value={5}>5 ideas</option>
+              <option value={10}>10 ideas</option>
+            </select>
+          </label>
         </div>
 
-        {/* Email Preferences */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Email Preferences
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Frequency */}
-            <div>
-              <Label htmlFor="frequency" className="text-base font-semibold mb-2 block">
-                How often should we send you ideas?
-              </Label>
-              <Select
-                value={settings.emailFrequency}
-                onValueChange={(value) =>
-                  setSettings({ ...settings, emailFrequency: value })
-                }
-              >
-                <SelectTrigger id="frequency">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={async () => {
+              await fetch("/api/email/send-test", { method: "POST" });
+              alert("Test email sent!");
+              await refreshEmailStatus();
+            }}
+            className="border px-4 py-2 rounded"
+          >
+            Send test email
+          </button>
+          <button
+            onClick={async () => {
+              await fetch("/api/jobs/weekly-insights", { method: "POST" });
+              alert("Weekly insights job queued!");
+              await refreshEmailStatus();
+            }}
+            className="border px-4 py-2 rounded"
+          >
+            Queue weekly insights
+          </button>
+        </div>
+      </section>
 
-            {/* Day of Week */}
-            <div>
-              <Label htmlFor="day" className="text-base font-semibold mb-2 block flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Which day?
-              </Label>
-              <Select
-                value={settings.emailDay}
-                onValueChange={(value) =>
-                  setSettings({ ...settings, emailDay: value })
-                }
-              >
-                <SelectTrigger id="day">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monday">Monday</SelectItem>
-                  <SelectItem value="tuesday">Tuesday</SelectItem>
-                  <SelectItem value="wednesday">Wednesday</SelectItem>
-                  <SelectItem value="thursday">Thursday</SelectItem>
-                  <SelectItem value="friday">Friday</SelectItem>
-                  <SelectItem value="saturday">Saturday</SelectItem>
-                  <SelectItem value="sunday">Sunday</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Time */}
-            <div>
-              <Label htmlFor="time" className="text-base font-semibold mb-2 block flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                What time?
-              </Label>
-              <Input
-                id="time"
-                type="time"
-                value={settings.emailTime}
-                onChange={(e) =>
-                  setSettings({ ...settings, emailTime: e.target.value })
-                }
-              />
-            </div>
-
-            {/* Timezone */}
-            <div>
-              <Label htmlFor="timezone" className="text-base font-semibold mb-2 block">
-                Timezone
-              </Label>
-              <Select
-                value={settings.timezone}
-                onValueChange={(value) =>
-                  setSettings({ ...settings, timezone: value })
-                }
-              >
-                <SelectTrigger id="timezone">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
-                  <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
-                  <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
-                  <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
-                  <SelectItem value="Europe/London">London (GMT)</SelectItem>
-                  <SelectItem value="Europe/Paris">Paris (CET)</SelectItem>
-                  <SelectItem value="Asia/Kolkata">India (IST)</SelectItem>
-                  <SelectItem value="Asia/Tokyo">Tokyo (JST)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Number of Ideas */}
-            <div>
-              <Label htmlFor="ideaCount" className="text-base font-semibold mb-2 block">
-                How many ideas per email?
-              </Label>
-              <Select
-                value={settings.ideaCount.toString()}
-                onValueChange={(value) =>
-                  setSettings({ ...settings, ideaCount: parseInt(value) })
-                }
-              >
-                <SelectTrigger id="ideaCount">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="3">3 ideas</SelectItem>
-                  <SelectItem value="5">5 ideas</SelectItem>
-                  <SelectItem value="10">10 ideas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Preview */}
-        <Card className="mb-6 bg-blue-50 border-blue-200">
-          <CardContent className="pt-6">
-            <p className="text-sm text-gray-700">
-              <strong>Preview:</strong> You'll receive{" "}
-              <span className="font-semibold">{settings.ideaCount} video ideas</span>{" "}
-              every{" "}
-              <span className="font-semibold capitalize">
-                {settings.emailFrequency === "weekly"
-                  ? settings.emailDay
-                  : settings.emailFrequency === "biweekly"
-                  ? `other ${settings.emailDay}`
-                  : `${settings.emailDay} of the month`}
-              </span>{" "}
-              at{" "}
-              <span className="font-semibold">
-                {settings.emailTime} {settings.timezone}
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Save Button */}
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          size="lg"
-          className="w-full bg-purple-600 hover:bg-purple-700"
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Email Status</h2>
+        <div className="text-sm text-gray-600">
+          Last sent:{" "}
+          {emailStatus?.lastSentAt
+            ? new Date(emailStatus.lastSentAt).toLocaleString()
+            : "N/A"}
+        </div>
+        <div className="text-sm text-gray-600">
+          Queue:{" "}
+          {emailStatus?.queueCounts
+            ? Object.entries(emailStatus.queueCounts)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(" | ")
+            : "N/A"}
+        </div>
+        <button
+          onClick={refreshEmailStatus}
+          className="border px-4 py-2 rounded"
         >
-          {saving ? "Saving..." : "Save Settings"}
-        </Button>
-      </div>
-    </div>
-  );
-}
+          Refresh email status
+        </button>
+      </section>
 
-function SettingsSkeleton() {
-  return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-3xl mx-auto">
-        <Skeleton className="h-10 w-64 mb-8" />
-        <Skeleton className="h-96" />
-      </div>
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Content Preferences</h2>
+
+        <label className="space-y-1 block">
+          <span className="text-sm text-gray-600">Focus areas (comma-separated)</span>
+          <input
+            type="text"
+            value={joinList(settings.preferences?.focusAreas)}
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                preferences: {
+                  ...settings.preferences,
+                  focusAreas: splitList(e.target.value),
+                },
+              })
+            }
+            className="w-full border rounded px-3 py-2"
+          />
+        </label>
+
+        <label className="space-y-1 block">
+          <span className="text-sm text-gray-600">Avoid topics (comma-separated)</span>
+          <input
+            type="text"
+            value={joinList(settings.preferences?.avoidTopics)}
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                preferences: {
+                  ...settings.preferences,
+                  avoidTopics: splitList(e.target.value),
+                },
+              })
+            }
+            className="w-full border rounded px-3 py-2"
+          />
+        </label>
+
+        <label className="space-y-1 block">
+          <span className="text-sm text-gray-600">Preferred formats (comma-separated)</span>
+          <input
+            type="text"
+            value={joinList(settings.preferences?.preferredFormats)}
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                preferences: {
+                  ...settings.preferences,
+                  preferredFormats: splitList(e.target.value),
+                },
+              })
+            }
+            className="w-full border rounded px-3 py-2"
+          />
+        </label>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Channel Management</h2>
+        <div className="text-sm text-gray-600">
+          Sync status: {syncStatus || "unknown"} | Last synced: {lastSyncedAt || "N/A"}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={async () => {
+              await fetch("/api/youtube/sync", { method: "POST" });
+              const res = await fetch("/api/youtube/history");
+              const data = await res.json();
+              setSyncStatus(data.syncStatus || null);
+              setLastSyncedAt(data.lastSyncedAt || null);
+            }}
+            className="bg-black text-white px-4 py-2 rounded"
+          >
+            Re-sync channel data
+          </button>
+          <button
+            onClick={async () => {
+              await fetch("/api/youtube/disconnect", { method: "POST" });
+            }}
+            className="border px-4 py-2 rounded"
+          >
+            Disconnect channel
+          </button>
+          <button
+            onClick={async () => {
+              const res = await fetch("/api/youtube/history");
+              const data = await res.json();
+              setSyncStatus(data.syncStatus || null);
+              setLastSyncedAt(data.lastSyncedAt || null);
+            }}
+            className="border px-4 py-2 rounded"
+          >
+            View sync history
+          </button>
+        </div>
+      </section>
+
+      <button
+        onClick={async () => {
+          await fetch("/api/settings/preferences", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ settings }),
+          });
+          alert("Saved!");
+          await refreshEmailStatus();
+        }}
+        className="bg-black text-white px-4 py-2 rounded"
+      >
+        Save Settings
+      </button>
     </div>
   );
 }

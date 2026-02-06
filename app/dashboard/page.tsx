@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Brain, Video, MessageSquare, TrendingUp, Sparkles } from "lucide-react";
+import { Brain, Video, MessageSquare, TrendingUp, Sparkles, BarChart3, ArrowRight } from "lucide-react";
 import { VideoCarousel } from "@/components/dashboard/video-carousel";
 import { AudiencePulse } from "@/components/dashboard/audience-pulse";
 import Link from "next/link";
@@ -276,23 +276,25 @@ function DashboardContent() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <Button
-            onClick={handleRefreshData}
-            disabled={syncing}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            {syncing ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                Syncing...
-              </>
-            ) : (
-              <>
-                <TrendingUp className="mr-2 h-4 w-4" />
-                Refresh Data
-              </>
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleRefreshData}
+              disabled={syncing}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {syncing ? (
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Refresh Data
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Stats Overview */}
@@ -318,13 +320,38 @@ function DashboardContent() {
             value={ideas?.ideas?.length || 0}
           />
         </div>
+
+        {/* Performance Patterns CTA Card */}
+        <Card className="mb-8 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <BarChart3 className="h-8 w-8 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Performance Patterns Analysis</h3>
+                  <p className="text-sm text-gray-600">
+                    See what's working best: formats, topics, tones, hooks, and optimal upload times
+                  </p>
+                </div>
+              </div>
+              <Link href="/performance">
+                <Button className="bg-purple-600 hover:bg-purple-700 gap-2">
+                  View Analysis
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Video Carousel */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Your Videos</h2>
           <VideoCarousel />
         </div>
         <AudiencePulse />
-
 
         {/* Top Insights */}
         <Card className="mb-8">

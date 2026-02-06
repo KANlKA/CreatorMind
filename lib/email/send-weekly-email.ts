@@ -1,0 +1,1 @@
+export { sendWeeklyEmail } from "./sender"

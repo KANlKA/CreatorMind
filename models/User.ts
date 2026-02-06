@@ -10,6 +10,7 @@ export interface IUser extends Document {
   youtubeAccessToken?: string;
   youtubeRefreshToken?: string;
   settings: {
+    emailEnabled: boolean;  // ← ADD THIS
     emailFrequency: 'weekly' | 'biweekly' | 'monthly';
     emailDay: string;
     emailTime: string;
@@ -38,6 +39,7 @@ const UserSchema = new Schema<IUser>(
     youtubeAccessToken: String,
     youtubeRefreshToken: String,
     settings: {
+      emailEnabled: { type: Boolean, default: true },  // ← ADD THIS
       emailFrequency: { type: String, enum: ['weekly', 'biweekly', 'monthly'], default: 'weekly' },
       emailDay: { type: String, default: 'sunday' },
       emailTime: { type: String, default: '09:00' },
@@ -54,10 +56,6 @@ const UserSchema = new Schema<IUser>(
   },
   { timestamps: true }
 );
-
-// REMOVED: These duplicate the unique: true in the schema
-// UserSchema.index({ email: 1 });
-// UserSchema.index({ youtubeChannelId: 1 });
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 

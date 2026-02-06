@@ -57,35 +57,43 @@ export function VideoCarousel() {
           <Link href={`/videos/${video.videoId}`}>
             <Card className="group relative min-w-[260px] overflow-hidden transition-all hover:scale-105 cursor-pointer">
               <img
-              src={video.thumbnailUrl}
-              alt={video.title}
-              className="w-full h-40 object-cover"
-            />
-            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-              {(
-                ((video.likes ?? 0) + (video.commentCount ?? 0)) /
-                Math.max(video.views, 1)
-              * 100
-              ).toFixed(1)}% ENG
-            </div>
+                src={video.thumbnailUrl}
+                alt={video.title}
+                className="w-full h-40 object-cover"
+              />
+              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                {(
+                  ((video.likes ?? 0) + (video.commentCount ?? 0)) /
+                  Math.max(video.views, 1) *
+                  100
+                ).toFixed(1)}% ENG
+              </div>
 
               <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-3 text-white text-sm">
+                <p className="font-semibold mb-2">Click to view comment analysis</p>
                 <p>{video.views.toLocaleString()} views</p>
                 <p>
                   {(
                     ((video.likes ?? 0) + (video.commentCount ?? 0)) /
-                    Math.max(video.views, 1)
-                  * 100
+                    Math.max(video.views, 1) *
+                    100
                   ).toFixed(1)}% engagement
                 </p>
               </div>
+
               <div className="p-3 space-y-1">
-              <p className="font-semibold line-clamp-2">{video.title}</p>
+                <p className="font-semibold line-clamp-2">{video.title}</p>
 
                 <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
-                  <span className="flex items-center gap-1">👁 {video.views.toLocaleString()}</span>
-                  <span className="flex items-center gap-1">👍 {video.likes?.toLocaleString() ?? 0}</span>
-                  <span className="flex items-center gap-1">💬 {video.commentCount?.toLocaleString() ?? 0}</span>
+                  <span className="flex items-center gap-1">
+                    👁 {video.views.toLocaleString()}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    👍 {video.likes?.toLocaleString() ?? 0}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    💬 {video.commentCount?.toLocaleString() ?? 0}
+                  </span>
                 </div>
               </div>
             </Card>

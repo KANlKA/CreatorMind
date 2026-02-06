@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Lightbulb, TrendingUp, Settings } from "lucide-react";
+import { LayoutDashboard, Lightbulb, TrendingUp, Settings, BarChart3 } from "lucide-react";
 
 const routes = [
   {
@@ -23,6 +23,12 @@ const routes = [
     icon: Lightbulb,
     href: "/ideas",
     color: "text-yellow-500",
+  },
+  {
+    label: "Performance",
+    icon: BarChart3,
+    href: "/performance",
+    color: "text-purple-500",
   },
   {
     label: "Settings",

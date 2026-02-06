@@ -46,6 +46,12 @@ export function Header() {
             >
               Ideas
             </Link>
+            <Link
+              href="/performance"
+              className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
+            >
+              Performance
+            </Link>
           </nav>
 
           {/* User Menu */}

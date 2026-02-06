@@ -1,11 +1,8 @@
 import { Queue } from "bullmq";
 import Redis from "ioredis";
 
-// Redis connection
-const connection = new Redis({
-  host: process.env.UPSTASH_REDIS_REST_URL?.replace("https://", "").split(":")[0],
-  port: parseInt(process.env.UPSTASH_REDIS_REST_URL?.split(":")[2] || "6379"),
-  password: process.env.UPSTASH_REDIS_REST_TOKEN,
+// Redis connection (BullMQ requires TCP/Redis URL)
+export const connection = new Redis(process.env.UPSTASH_REDIS_URL || "", {
   maxRetriesPerRequest: null,
 });
 
@@ -28,7 +25,7 @@ export async function addWeeklyInsightsJob(userId: string, cronPattern: string, 
   );
 }
 
-export async function addEmailJob(userId: string, ideaId: string) {
+export async function addEmailJob(userId: string, ideaId?: string) {
   return await emailQueue.add("send-weekly-email", {
     userId,
     ideaId,
