@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface Video {
   _id: string;
+  videoId: string;
   title: string;
   thumbnailUrl: string;
   views: number;
@@ -52,8 +54,9 @@ export function VideoCarousel() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="group relative min-w-[260px] overflow-hidden transition-all hover:scale-105">
-            <img
+          <Link href={`/videos/${video.videoId}`}>
+            <Card className="group relative min-w-[260px] overflow-hidden transition-all hover:scale-105 cursor-pointer">
+              <img
               src={video.thumbnailUrl}
               alt={video.title}
               className="w-full h-40 object-cover"
@@ -66,26 +69,27 @@ export function VideoCarousel() {
               ).toFixed(1)}% ENG
             </div>
 
-            <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-3 text-white text-sm">
-              <p>{video.views.toLocaleString()} views</p>
-              <p>
-                 {(
-                   ((video.likes ?? 0) + (video.commentCount ?? 0)) /
-                   Math.max(video.views, 1)
-                 * 100
-                 ).toFixed(1)}% engagement
-              </p>
+              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-3 text-white text-sm">
+                <p>{video.views.toLocaleString()} views</p>
+                <p>
+                  {(
+                    ((video.likes ?? 0) + (video.commentCount ?? 0)) /
+                    Math.max(video.views, 1)
+                  * 100
+                  ).toFixed(1)}% engagement
+                </p>
               </div>
-            <div className="p-3 space-y-1">
+              <div className="p-3 space-y-1">
               <p className="font-semibold line-clamp-2">{video.title}</p>
 
-              <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
-                <span className="flex items-center gap-1">👁 {video.views.toLocaleString()}</span>
-                <span className="flex items-center gap-1">👍 {video.likes?.toLocaleString() ?? 0}</span>
-                <span className="flex items-center gap-1">💬 {video.commentCount?.toLocaleString() ?? 0}</span>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
+                  <span className="flex items-center gap-1">👁 {video.views.toLocaleString()}</span>
+                  <span className="flex items-center gap-1">👍 {video.likes?.toLocaleString() ?? 0}</span>
+                  <span className="flex items-center gap-1">💬 {video.commentCount?.toLocaleString() ?? 0}</span>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </Link>
         </motion.div>
       ))}
     </div>

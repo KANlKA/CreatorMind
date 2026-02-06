@@ -22,7 +22,7 @@ export async function GET() {
   const videos = await Video.find({ userId: user._id })
     .sort({ publishedAt: -1 })
     .limit(20)
-    .select("title thumbnailUrl views likes commentCount engagementRate")
+    .select("videoId title thumbnailUrl views likes commentCount engagementRate")
 
   return NextResponse.json({ videos });
 }

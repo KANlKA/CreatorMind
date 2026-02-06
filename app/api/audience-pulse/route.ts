@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db/mongodb";
 import User from "@/models/User";
+import Video from "@/models/Video";
 import Comment from "@/models/Comment";
 
 export async function GET() {
@@ -14,7 +15,12 @@ export async function GET() {
   const user = await User.findOne({ email: session.user.email });
   if (!user) return NextResponse.json({});
 
-  const comments = await Comment.find({ userId: user._id });
+  // Get all user's videos first
+  const videos = await Video.find({ userId: user._id }).select('_id');
+  const videoIds = videos.map(v => v._id);
+
+  // Get comments for those videos
+  const comments = await Comment.find({ videoId: { $in: videoIds } });
   console.log("COMMENTS FOUND:", comments.length);
 
   const intentCount: Record<string, number> = {};
