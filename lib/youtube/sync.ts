@@ -185,12 +185,14 @@ async function syncChannelData(
               // Update existing comment likes
               await Comment.findByIdAndUpdate(existingComment._id, {
                 likes: commentData.likes,
+                userId,
               });
             } else {
               // Create new comment
               const commentAnalysis = await analyzeComment(commentData.text);
 
               await Comment.create({
+                userId,
                 videoId: video._id,
                 commentId: commentData.commentId,
                 authorName: commentData.authorName,
