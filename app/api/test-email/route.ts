@@ -12,12 +12,12 @@ export async function GET() {
       Messages: [
         {
           From: {
-            Email: "zenha4504@gmail.com", // ✅ VERIFIED sender in Mailjet
+            Email: "kpzenha49@gmail.com", // ✅ VERIFIED sender in Mailjet
             Name: "CreatorMind",
           },
           To: [
             {
-              Email: "kanikachauda@gmail.com", // can be teammate / friend
+              Email: "zenha4504@gmail.com", // can be teammate / friend
               Name: "Recipient",
             },
           ],

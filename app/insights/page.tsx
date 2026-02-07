@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { VideoCarousel } from "@/components/dashboard/video-carousel";
+import { AudiencePulse } from "@/components/dashboard/audience-pulse";
 import {
   Brain,
   TrendingUp,
@@ -371,6 +373,12 @@ export default function InsightsPage() {
                 </div>
               </div>
             )}
+            {/* Video Carousel */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">Your Videos</h2>
+              <VideoCarousel />
+            </div>
+            <AudiencePulse />
           </CardContent>
         </Card>
       </div>

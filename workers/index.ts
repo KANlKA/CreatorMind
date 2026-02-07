@@ -8,14 +8,18 @@ config();
 if (!process.env.MONGODB_URI) {
   console.warn("MONGODB_URI is missing in worker environment");
 } else {
-  console.log("MONGODB_URI loaded for worker");
+  console.log("✅ MONGODB_URI loaded for worker");
 }
 
 async function main() {
   const { generateVideoIdeas } = await import("@/lib/ai/idea-generator");
-  const { generateCreatorInsights } = await import("@/lib/ai/insights-generator");
+  const { generateCreatorInsights } = await import(
+    "@/lib/ai/insights-generator"
+  );
   const { sendWeeklyEmail } = await import("@/lib/email/sender");
-  const { fetchWeeklyIdeas } = await import("@/lib/email/fetch-weekly-ideas");
+  const { fetchWeeklyIdeas } = await import(
+    "@/lib/email/fetch-weekly-ideas"
+  );
   const connectDB = (await import("@/lib/db/mongodb")).default;
   const User = (await import("@/models/User")).default;
   const GeneratedIdea = (await import("@/models/GeneratedIdea")).default;
@@ -29,9 +33,16 @@ async function main() {
   const weeklyInsightsQueue = new Queue("weekly-insights", { connection });
   const emailQueue = new Queue("email", { connection });
 
-  async function shouldSendEmail(userId: string, frequency: string, forceSend?: boolean) {
+  async function shouldSendEmail(
+    userId: string,
+    frequency: string,
+    forceSend?: boolean
+  ) {
     if (forceSend) return true;
-    const lastEmail = await GeneratedIdea.findOne({
+    const GeneratedIdeaModel = (
+      await import("@/models/GeneratedIdea")
+    ).default;
+    const lastEmail = await GeneratedIdeaModel.findOne({
       userId,
       emailStatus: "sent",
     }).sort({ emailSentAt: -1 });
@@ -54,20 +65,24 @@ async function main() {
     async (job) => {
       const { userId, forceSend } = job.data;
 
-      console.log(`Processing weekly insights for user ${userId}`);
+      console.log(`📊 Processing weekly insights for user ${userId}`);
 
       try {
         await connectDB();
 
         // Regenerate insights
+        console.log(`  → Generating creator insights...`);
         await generateCreatorInsights(userId);
 
         // Generate new ideas
+        console.log(`  → Generating video ideas...`);
         const ideas = await generateVideoIdeas(userId);
 
         const user = await User.findById(userId);
         if (!user || !user.settings?.emailEnabled) {
-          console.log(`User ${userId} has email disabled; skipping email queue.`);
+          console.log(
+            `  ⚠️  User ${userId} has email disabled; skipping email queue.`
+          );
           return { success: true };
         }
 
@@ -78,6 +93,7 @@ async function main() {
         );
 
         if (frequencyOk) {
+          console.log(`  → Queueing email for user ${userId}...`);
           // Queue email
           await emailQueue.add("send-weekly-email", {
             userId,
@@ -85,20 +101,22 @@ async function main() {
             forceSend,
           });
         } else {
-          console.log(`Email frequency not due for user ${userId}; skipping queue.`);
+          console.log(
+            `  ⚠️  Email frequency not due for user ${userId}; skipping queue.`
+          );
         }
 
-        console.log(`Weekly insights completed for user ${userId}`);
+        console.log(`✅ Weekly insights completed for user ${userId}`);
         return { success: true };
       } catch (error) {
         console.error(
-          `Error processing weekly insights for user ${userId}:`,
-          error,
+          `❌ Error processing weekly insights for user ${userId}:`,
+          error
         );
         throw error;
       }
     },
-    { connection },
+    { connection }
   );
 
   // Email Worker
@@ -107,26 +125,26 @@ async function main() {
     async (job) => {
       const { userId, ideaId, forceSend } = job.data;
 
-      console.log(`Sending weekly email to user ${userId}`);
+      console.log(`📧 Sending weekly email to user ${userId}`);
 
       try {
         await connectDB();
 
         const user = await User.findById(userId);
         if (!user || !user.settings?.emailEnabled) {
-          console.log(`User ${userId} has email disabled; skipping send.`);
+          console.log(`  ⚠️  User ${userId} has email disabled; skipping send.`);
           return { success: true };
         }
 
-      const frequencyOk = await shouldSendEmail(
-        userId,
-        user.settings.emailFrequency,
-        forceSend
-      );
-      if (!frequencyOk) {
-        console.log(`User ${userId} frequency not due; skipping send.`);
-        return { success: true };
-      }
+        const frequencyOk = await shouldSendEmail(
+          userId,
+          user.settings.emailFrequency,
+          forceSend
+        );
+        if (!frequencyOk) {
+          console.log(`  ⚠️  User ${userId} frequency not due; skipping send.`);
+          return { success: true };
+        }
 
         let ideasDoc: any = null;
         let ideas: any[] = [];
@@ -150,12 +168,21 @@ async function main() {
           throw new Error("Ideas not found");
         }
 
-        await sendWeeklyEmail({ user, ideasDoc, ideas });
+        console.log(
+          `  → Sending ${ideas.length} ideas to ${user.email} via Mailjet...`
+        );
+        const result = await sendWeeklyEmail({ user, ideasDoc, ideas });
 
-        console.log(`Weekly email sent to user ${userId}`);
-        return { success: true };
+        if (result.success) {
+          console.log(
+            `✅ Weekly email sent to user ${userId} (Message ID: ${result.messageId})`
+          );
+          return { success: true };
+        } else {
+          throw new Error("Failed to send email");
+        }
       } catch (error) {
-        console.error(`Error sending email to user ${userId}:`, error);
+        console.error(`❌ Error sending email to user ${userId}:`, error);
 
         if (ideaId) {
           await GeneratedIdea.findByIdAndUpdate(ideaId, {
@@ -166,7 +193,7 @@ async function main() {
         throw error;
       }
     },
-    { connection },
+    { connection }
   );
 
   // Schedule weekly insights for all users
@@ -178,6 +205,8 @@ async function main() {
       syncStatus: "completed",
       "settings.emailEnabled": true,
     });
+
+    console.log(`\n📅 Scheduling weekly insights for ${users.length} users...`);
 
     for (const user of users) {
       const { emailDay, emailTime, timezone } = user.settings;
@@ -205,39 +234,43 @@ async function main() {
             pattern: cronExpression,
             tz: timezone,
           },
-        },
+        }
       );
 
       console.log(
-        `Scheduled weekly insights for user ${user._id} (${cronExpression} ${timezone})`,
+        `  ✅ ${user.email}: ${cronExpression} (${timezone})`
       );
     }
+
+    console.log(`\n✅ Weekly insights scheduling initialized\n`);
   }
 
   weeklyInsightsWorker.on("failed", (job, err) => {
-    console.error(`Weekly insights job ${job?.id} failed:`, err);
+    console.error(`❌ Weekly insights job ${job?.id} failed:`, err.message);
   });
 
   emailWorker.on("failed", (job, err) => {
-    console.error(`Email job ${job?.id} failed:`, err);
+    console.error(`❌ Email job ${job?.id} failed:`, err.message);
   });
 
   weeklyInsightsWorker.on("completed", (job) => {
-    console.log(`Weekly insights job ${job.id} completed`);
+    console.log(`✅ Weekly insights job ${job.id} completed`);
   });
 
   emailWorker.on("completed", (job) => {
-    console.log(`Email job ${job.id} completed`);
+    console.log(`✅ Email job ${job.id} completed`);
   });
 
   if (process.env.NODE_ENV === "production") {
     scheduleWeeklyInsights().then(() => {
-      console.log("Weekly insights scheduling initialized");
+      console.log("✨ Worker initialized and ready to process jobs");
     });
+  } else {
+    console.log("🔧 Worker running in development mode (scheduling disabled)");
   }
 }
 
 main().catch((error) => {
-  console.error("Worker failed to start:", error);
+  console.error("❌ Worker failed to start:", error);
   process.exit(1);
 });
