@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IComment extends Document {
+  userId?: mongoose.Types.ObjectId;
   videoId: mongoose.Types.ObjectId;
   commentId: string;
   authorName: string;
@@ -21,6 +22,7 @@ export interface IComment extends Document {
 
 const CommentSchema = new Schema<IComment>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
     videoId: { type: Schema.Types.ObjectId, ref: 'Video', required: true },
     commentId: { type: String, required: true, unique: true },
     authorName: String,

@@ -95,11 +95,52 @@ For each idea, provide:
 - predictedEngagement: 0-1 (decimal)
 - confidence: 0-1 (decimal)
 - suggestedStructure: {hook: string, format: string, length: string, tone: string}
+- contentPack: {
+    hashtags: array of 15 strong YouTube hashtags
+    titleVariants: array of 10 viral title alternatives
+    script: full structured YouTube script for this idea
+  }
+
 
 CRITICAL: For evidence.type, use ONLY these exact strings: "comment", "performance", "trend"
 Do NOT use "audienceFit" or any other value for evidence.type.
 
-Return as JSON array with 5 ideas.`;
+Return ONLY valid JSON.
+
+Structure EXACTLY like:
+
+[
+  {
+    "rank": number,
+    "title": string,
+    "reasoning": {
+      "commentDemand": string,
+      "pastPerformance": string,
+      "audienceFit": string,
+      "trendingScore": number
+    },
+    "evidence": [
+      {
+        "type": "comment" | "performance" | "trend",
+        "text": string
+      }
+    ],
+    "predictedEngagement": number,
+    "confidence": number,
+    "suggestedStructure": {
+      "hook": string,
+      "format": string,
+      "length": string,
+      "tone": string
+    },
+    "contentPack": {
+      "hashtags": [string],
+      "titleVariants": [string],
+      "script": string
+    }
+  }
+]
+  `;
 
   try {
     const ideas = await generateJSON(prompt);

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, TrendingUp, Lightbulb } from "lucide-react";
 
@@ -26,14 +25,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <Image
-              src="/logo.png"
-              alt="CreatorMind"
-              width={44}
-              height={44}
-              className="object-contain"
-            />
+          <Link href="/dashboard">
             <span className="font-bold text-lg text-gray-900">CreatorMind</span>
           </Link>
 

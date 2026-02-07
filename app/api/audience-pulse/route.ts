@@ -15,12 +15,7 @@ export async function GET() {
   const user = await User.findOne({ email: session.user.email });
   if (!user) return NextResponse.json({});
 
-  // Get all user's videos first
-  const videos = await Video.find({ userId: user._id }).select('_id');
-  const videoIds = videos.map(v => v._id);
-
-  // Get comments for those videos
-  const comments = await Comment.find({ videoId: { $in: videoIds } });
+  const comments = await Comment.find({ userId: user._id });
   console.log("COMMENTS FOUND:", comments.length);
 
   const intentCount: Record<string, number> = {};

@@ -22,11 +22,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    let insights = await CreatorInsight.findOne({ userId: user._id });
-
-    // If no insights exist, generate them
-    if (!insights) {
-      const videoCount = await Video.countDocuments({ userId: user._id });
+    const videoCount = await Video.countDocuments({ userId: user._id });
 
       if (videoCount === 0) {
         return NextResponse.json(
@@ -35,8 +31,8 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      insights = await generateCreatorInsights(user._id.toString());
-    }
+      const insights = await generateCreatorInsights(user._id.toString());
+  
 
     // Get overall stats
     const totalVideos = await Video.countDocuments({ userId: user._id });

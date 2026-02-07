@@ -15,6 +15,7 @@ export default function IdeaDetailPage() {
   const router = useRouter();
   const { status } = useSession();
   const [idea, setIdea] = useState<any>(null);
+  const [aiContent, setAiContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const ideaIndex = parseInt(params.id as string);
@@ -32,8 +33,24 @@ export default function IdeaDetailPage() {
         const data = await res.json();
 
         if (data.ideas && data.ideas[ideaIndex]) {
-          setIdea(data.ideas[ideaIndex]);
+          const selectedIdea = data.ideas[ideaIndex];
+          setIdea(selectedIdea);
+
+  // 👇 call AI generator
+          const aiRes = await fetch("/api/ai/generate-content", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "all",
+              idea: selectedIdea,
+            }),
+          });
+
+          const aiData = await aiRes.json();
+          console.log("AI RESPONSE:", aiData);
+          setAiContent(aiData);
         }
+
       } catch (error) {
         console.error("Error fetching idea:", error);
       } finally {
@@ -226,6 +243,45 @@ export default function IdeaDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {aiContent && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>🤖 AI Content Pack</CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+
+              {/* Hashtags */}
+              <div>
+                <h3 className="font-semibold mb-2">🔥 Hashtags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {aiContent.hashtags?.map((tag: string, i: number) => (
+                    <Badge key={i}>{tag}</Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Titles */}
+              <div>
+                <h3 className="font-semibold mb-2">🎯 Title Ideas</h3>
+                <ul className="list-disc ml-6 space-y-1">
+                  {aiContent.titles?.map((title: string, i: number) => (
+                    <li key={i}>{title}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Script */}
+              <div>
+                <h3 className="font-semibold mb-2">🎬 Script</h3>
+                <p className="whitespace-pre-line">{aiContent.script}</p>
+              </div>
+
+            </CardContent>
+          </Card>
+        )}
+
 
         {/* Actions */}
         <div className="flex gap-3">

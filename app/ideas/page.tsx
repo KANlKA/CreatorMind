@@ -58,7 +58,7 @@ export default function IdeasPage() {
     return <IdeasSkeleton />;
   }
 
-  if (!ideas || ideas.ideas.length === 0) {
+  if (!ideas || !ideas.ideas || ideas.ideas.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-7xl mx-auto">
