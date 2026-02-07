@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateHeuristicContent } from "@/lib/content/heuristic-generator";
+import { generateIdeaGeoRecommendation } from "@/lib/content/idea-geo-recommendation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -92,7 +93,6 @@ export default function IdeaDetailPage() {
   }
   const contentPack = generateHeuristicContent(idea);
 
-
   const rankEmojis = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
   const confidenceColor =
     idea.confidence >= 0.8
@@ -100,6 +100,7 @@ export default function IdeaDetailPage() {
       : idea.confidence >= 0.6
         ? "text-yellow-600"
         : "text-orange-600";
+  const geoRecommendations = generateIdeaGeoRecommendation(idea);
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
@@ -143,6 +144,25 @@ export default function IdeaDetailPage() {
               </div>
             </div>
           </CardHeader>
+        </Card>
+
+        {/* Geography Recommendation */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Where This Idea Will Perform Best</CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-3">
+            {geoRecommendations.map((geo: any, i: number) => (
+              <div
+                key={i}
+                className="p-4 bg-blue-50 rounded-lg border border-blue-200"
+              >
+                <p className="font-semibold">{geo.country}</p>
+                <p className="text-sm text-gray-600">{geo.reason}</p>
+              </div>
+            ))}
+          </CardContent>
         </Card>
 
         {/* Why This Will Work */}
@@ -277,13 +297,11 @@ export default function IdeaDetailPage() {
 
                   <div className="flex flex-wrap gap-2">
                     {contentPack?.hashtags?.length ? (
-                      contentPack.hashtags.map(
-                        (tag: string, i: number) => (
-                          <Badge key={i} variant="secondary">
-                            {tag}
-                          </Badge>
-                        ),
-                      )
+                      contentPack.hashtags.map((tag: string, i: number) => (
+                        <Badge key={i} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))
                     ) : (
                       <p className="text-gray-400 text-sm">
                         Generating hashtags...
