@@ -75,7 +75,7 @@ export default function BrandCollaborationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
         <div className="max-w-7xl mx-auto">
           <p className="text-center">Loading brand collaboration insights...</p>
         </div>
@@ -85,7 +85,7 @@ export default function BrandCollaborationPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-black p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
         <div className="max-w-7xl mx-auto">
           <p className="text-center text-red-600">Failed to load data</p>
         </div>
@@ -94,7 +94,7 @@ export default function BrandCollaborationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -106,7 +106,7 @@ export default function BrandCollaborationPage() {
               </Button>
             </Link>
             <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Briefcase className="h-8 w-8 text-purple-400" />
+              <Briefcase className="h-8 w-8 text-purple-600" />
               Brand Collaboration Signals
             </h1>
             <p className="text-gray-600 mt-2">
@@ -116,10 +116,10 @@ export default function BrandCollaborationPage() {
         </div>
 
         {/* Industries Attracted by Your Content */}
-        <Card className="bg-white/5 border-white/10">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-blue-400" />
+              <Building2 className="h-5 w-5 text-blue-600" />
               Industries Attracted by Your Content
             </CardTitle>
           </CardHeader>
@@ -133,7 +133,7 @@ export default function BrandCollaborationPage() {
                 {data.industries.map((industry, index) => (
                   <div
                     key={industry.name}
-                    className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-500/20"
+                    className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
@@ -163,10 +163,10 @@ export default function BrandCollaborationPage() {
         </Card>
 
         {/* Potential Brand Partners */}
-        <Card className="bg-white/5 border-white/10">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-green-400" />
+              <Target className="h-5 w-5 text-green-600" />
               Potential Brand Partners
             </CardTitle>
           </CardHeader>
@@ -180,7 +180,7 @@ export default function BrandCollaborationPage() {
                 {data.potentialBrands.map((brand) => (
                   <div
                     key={brand.industry}
-                    className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-5 border border-green-500/20"
+                    className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-5 border border-green-200"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-bold text-lg">{brand.industry}</h3>
@@ -195,7 +195,7 @@ export default function BrandCollaborationPage() {
                       {brand.reasoning}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      <span className="text-xs font-semibold text-gray-400">
+                      <span className="text-xs font-semibold text-gray-600">
                         Example Brands:
                       </span>
                       {brand.brandExamples.map((example) => (
@@ -216,10 +216,10 @@ export default function BrandCollaborationPage() {
         </Card>
 
         {/* Content Styles That Trigger Sponsorship Interest */}
-        <Card className="bg-white/5 border-white/10">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-400" />
+              <Sparkles className="h-5 w-5 text-purple-600" />
               Content Styles That Trigger Sponsorship Interest
             </CardTitle>
           </CardHeader>
@@ -228,7 +228,7 @@ export default function BrandCollaborationPage() {
               {data.contentStyles.map((style) => (
                 <div
                   key={style.style}
-                  className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-500/20"
+                  className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold text-gray-800">{style.style}</h3>
@@ -251,7 +251,7 @@ export default function BrandCollaborationPage() {
         {/* Audience Insights */}
         <div className="grid md:grid-cols-3 gap-6">
           {/* Top Interests */}
-          <Card className="bg-white/5 border-white/10">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <TrendingUp className="h-4 w-4 text-orange-600" />
@@ -280,10 +280,10 @@ export default function BrandCollaborationPage() {
           </Card>
 
           {/* Demographic Indicators */}
-          <Card className="bg-white/5 border-white/10">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="h-4 w-4 text-blue-400" />
+                <Users className="h-4 w-4 text-blue-600" />
                 Demographic Indicators
               </CardTitle>
             </CardHeader>
@@ -296,7 +296,7 @@ export default function BrandCollaborationPage() {
                 ) : (
                   data.audienceInsights.demographicIndicators.map((indicator, i) => (
                     <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                      <span className="text-blue-400 mt-0.5">•</span>
+                      <span className="text-blue-600 mt-0.5">•</span>
                       {indicator}
                     </li>
                   ))
@@ -306,10 +306,10 @@ export default function BrandCollaborationPage() {
           </Card>
 
           {/* Engagement Patterns */}
-          <Card className="bg-white/5 border-white/10">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <MessageSquare className="h-4 w-4 text-green-400" />
+                <MessageSquare className="h-4 w-4 text-green-600" />
                 Engagement Patterns
               </CardTitle>
             </CardHeader>
@@ -322,7 +322,7 @@ export default function BrandCollaborationPage() {
                 ) : (
                   data.audienceInsights.engagementPatterns.map((pattern, i) => (
                     <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                      <span className="text-green-400 mt-0.5">•</span>
+                      <span className="text-green-600 mt-0.5">•</span>
                       {pattern}
                     </li>
                   ))
@@ -343,7 +343,7 @@ export default function BrandCollaborationPage() {
               <Button
                 variant="secondary"
                 size="lg"
-                className="bg-white text-purple-400 hover:bg-gray-100"
+                className="bg-white text-purple-600 hover:bg-gray-100"
               >
                 Export Brand Collaboration Report
               </Button>

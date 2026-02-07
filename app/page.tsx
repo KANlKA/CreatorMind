@@ -2,7 +2,6 @@
 
 import { CTA } from "@/components/ui/cta";
 import { Brain, TrendingUp, Lightbulb } from "lucide-react";
-import { Header } from "@/components/ui/header";
 import { useScroll, useTransform } from "motion/react";
 import React from "react";
 import { GoogleGeminiEffect } from "@/components/ui/google-gemini-effect";
@@ -25,8 +24,6 @@ export default function HomePage() {
 
   return (
     <div className="h-[400vh] bg-black w-full relative overflow-clip" ref={ref}>
-      <Header />
-
       <GoogleGeminiEffect
         pathLengths={[
           pathLengthFirst,

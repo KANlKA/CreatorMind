@@ -71,7 +71,8 @@ export default function DashboardPage() {
 
 function ConnectChannelPrompt({ onConnect }: { onConnect: () => void }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-4rem)] pt-24
+ bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full bg-white/10 backdrop-blur-md border-white/20">
         <CardHeader className="text-center">
           <Brain className="h-16 w-16 text-purple-400 mx-auto mb-4" />
@@ -125,7 +126,8 @@ function SyncingProgress({ channelName }: { channelName: string }) {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-4rem)] pt-24
+ bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full bg-white/10 backdrop-blur-md border-white/20">
         <CardContent className="pt-6 text-center">
           <div className="animate-spin h-16 w-16 border-4 border-purple-400 border-t-transparent rounded-full mx-auto mb-6"></div>
@@ -272,7 +274,8 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-[calc(100vh-4rem)] pt-24
+ bg-black p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
@@ -431,7 +434,8 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-[calc(100vh-6rem)] pt-24
+bg-black p-6">
       <div className="max-w-7xl mx-auto">
         <Skeleton className="h-10 w-64 mb-8 bg-white/10" />
         <div className="grid md:grid-cols-4 gap-6 mb-8">

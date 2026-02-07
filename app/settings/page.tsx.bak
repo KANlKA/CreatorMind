@@ -214,7 +214,7 @@ export default function SettingsPage() {
   // Show loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-black p-6">
+      <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-96" />
@@ -226,9 +226,9 @@ export default function SettingsPage() {
   // Show unauthenticated
   if (status === "unauthenticated") {
     return (
-      <div className="min-h-screen bg-black p-6">
+      <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-4xl mx-auto">
-          <Card className="border-red-200 bg-red-900/20">
+          <Card className="border-red-200 bg-red-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-800">
                 <LogIn className="h-5 w-5" />
@@ -256,9 +256,9 @@ export default function SettingsPage() {
   // Show error state
   if (!settings || !editedSettings) {
     return (
-      <div className="min-h-screen bg-black p-6">
+      <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-4xl mx-auto">
-          <Card className="border-red-200 bg-red-900/20">
+          <Card className="border-red-200 bg-red-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-800">
                 <AlertCircle className="h-5 w-5" />
@@ -298,7 +298,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -346,19 +346,19 @@ export default function SettingsPage() {
           <Card
             className={
               alertMessage.type === "success"
-                ? "border-green-500/20 bg-green-900/20"
+                ? "border-green-200 bg-green-50"
                 : alertMessage.type === "error"
-                ? "border-red-200 bg-red-900/20"
-                : "border-blue-500/20 bg-blue-900/20"
+                ? "border-red-200 bg-red-50"
+                : "border-blue-200 bg-blue-50"
             }
           >
             <CardContent className="pt-6 flex items-center gap-3">
               {alertMessage.type === "success" ? (
-                <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
               ) : alertMessage.type === "error" ? (
                 <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
               ) : (
-                <AlertCircle className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
               )}
               <p
                 className={
@@ -379,7 +379,7 @@ export default function SettingsPage() {
         <Card className="border-2 border-gray-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-purple-400" />
+              <Mail className="h-5 w-5 text-purple-600" />
               Email Preferences
             </CardTitle>
           </CardHeader>
@@ -387,7 +387,7 @@ export default function SettingsPage() {
             {!isEditMode ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg border border-slate-200">
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold text-gray-900">
                     Weekly Emails
                   </span>
                   <Badge
@@ -403,7 +403,7 @@ export default function SettingsPage() {
 
                 {editedSettings.emailEnabled && (
                   <div className="grid md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-black rounded-lg border border-slate-200">
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <p className="text-xs font-medium text-gray-600 uppercase">
                         Frequency
                       </p>
@@ -411,7 +411,7 @@ export default function SettingsPage() {
                         {editedSettings.emailFrequency}
                       </p>
                     </div>
-                    <div className="p-4 bg-black rounded-lg border border-slate-200">
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <p className="text-xs font-medium text-gray-600 uppercase">
                         Day
                       </p>
@@ -419,7 +419,7 @@ export default function SettingsPage() {
                         {editedSettings.emailDay}
                       </p>
                     </div>
-                    <div className="p-4 bg-black rounded-lg border border-slate-200">
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <p className="text-xs font-medium text-gray-600 uppercase">
                         Time
                       </p>
@@ -432,7 +432,7 @@ export default function SettingsPage() {
               </div>
             ) : (
               <>
-                <label className="flex items-center gap-3 p-4 bg-blue-900/20 rounded-lg border border-blue-500/20 cursor-pointer hover:bg-blue-100 transition">
+                <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition">
                   <input
                     type="checkbox"
                     checked={editedSettings.emailEnabled}
@@ -444,7 +444,7 @@ export default function SettingsPage() {
                     }
                     className="w-5 h-5 rounded cursor-pointer accent-purple-600"
                   />
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold text-gray-900">
                     Enable weekly email insights
                   </span>
                 </label>
@@ -577,7 +577,7 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             {!isEditMode ? (
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-500/20">
+                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
                   <p className="text-xs font-bold text-gray-700 uppercase mb-2">
                     📌 Focus Areas
                   </p>
@@ -595,7 +595,7 @@ export default function SettingsPage() {
                       "None set"}
                   </p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border-2 border-green-500/20">
+                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border-2 border-green-200">
                   <p className="text-xs font-bold text-gray-700 uppercase mb-2">
                     📹 Formats
                   </p>
