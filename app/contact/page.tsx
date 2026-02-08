@@ -8,14 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Mail,
-  Send,
-  CheckCircle,
-  AlertCircle,
-  Loader,
-  MessageSquare,
-} from "lucide-react";
+import GlareButton from "@/components/ui/GlareButton";
 
 export default function ContactUsPage() {
   const { data: session, status } = useSession();
@@ -48,7 +41,7 @@ export default function ContactUsPage() {
   }
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -104,7 +97,7 @@ export default function ContactUsPage() {
       setSubmitted(true);
       setSuccessMessage(
         data.message ||
-          "Your query has been received! Check your email for our response."
+          "Your query has been received! Check your email for our response.",
       );
       setFormData({
         name: "",
@@ -128,52 +121,54 @@ export default function ContactUsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-black">
+      <div className="h-20" />
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <MessageSquare className="h-8 w-8 text-purple-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Get in Touch</h1>
+          <div className="text-center mb-4">
+            <h1 className="text-4xl font-bold text-white">Get in Touch</h1>
           </div>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             Have a question about CreatorMind? We're here to help. Submit your
-            query below and we'll get back to you with a detailed response via email.
+            query below and we'll get back to you with a detailed response via
+            email.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           {/* Contact Info Cards */}
-          <Card className="bg-white border-purple-200">
+          <Card className="bg-zinc-900 border-zinc-800">
             <CardContent className="pt-6 text-center">
-              <Mail className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
-              <p className="text-sm text-gray-600">support@creatormind.ai</p>
+              <h3 className="font-semibold text-white mb-2">Email</h3>
+              <p className="text-sm text-gray-400">support@creatormind.ai</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-purple-200">
+          <Card className="bg-zinc-900 border-zinc-800">
             <CardContent className="pt-6 text-center">
-              <MessageSquare className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Response Time</h3>
-              <p className="text-sm text-gray-600">Usually within 24 hours</p>
+              <h3 className="font-semibold text-white mb-2">Response Time</h3>
+              <p className="text-sm text-gray-400">Usually within 24 hours</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-purple-200">
+          <Card className="bg-zinc-900 border-zinc-800">
             <CardContent className="pt-6 text-center">
-              <CheckCircle className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Support</h3>
-              <p className="text-sm text-gray-600">24/7 AI-powered assistance</p>
+              <h3 className="font-semibold text-white mb-2">Support</h3>
+              <p className="text-sm text-gray-400">
+                24/7 AI-powered assistance
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Contact Form */}
-        <Card className="bg-white border-2 border-gray-200">
+        <Card className="bg-zinc-900 border-zinc-800">
           <CardHeader>
-            <CardTitle className="text-2xl">Send us a Message</CardTitle>
-            <p className="text-sm text-gray-600 mt-2">
+            <CardTitle className="text-2xl text-white">
+              Send us a Message
+            </CardTitle>
+            <p className="text-sm text-gray-400 mt-2">
               Fill out the form below and we'll respond to your query promptly.
             </p>
           </CardHeader>
@@ -181,7 +176,6 @@ export default function ContactUsPage() {
             {submitted && successMessage ? (
               <div className="space-y-4">
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 text-center">
-                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-green-900 mb-2">
                     Query Submitted Successfully!
                   </h3>
@@ -190,7 +184,7 @@ export default function ContactUsPage() {
                     Please check your email for our detailed response.
                   </p>
                 </div>
-                <Button
+                <GlareButton
                   onClick={() => {
                     setSubmitted(false);
                     router.push("/dashboard");
@@ -198,13 +192,13 @@ export default function ContactUsPage() {
                   className="w-full bg-purple-600 hover:bg-purple-700"
                 >
                   Back to Dashboard
-                </Button>
+                </GlareButton>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Name Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-gray-900 font-semibold">
+                  <Label htmlFor="name" className="text-white font-semibold">
                     Your Name *
                   </Label>
                   <Input
@@ -213,14 +207,14 @@ export default function ContactUsPage() {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter your full name"
-                    className="border-2 border-gray-300 focus:border-purple-500 rounded-lg"
+                    className="bg-black border border-zinc-800 text-white focus:border-zinc-700 rounded-lg"
                     disabled={loading}
                   />
                 </div>
 
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-900 font-semibold">
+                  <Label htmlFor="email" className="text-white font-semibold">
                     Email Address *
                   </Label>
                   <Input
@@ -230,7 +224,7 @@ export default function ContactUsPage() {
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="your.email@example.com"
-                    className="border-2 border-gray-300 focus:border-purple-500 rounded-lg"
+                    className="bg-black border border-zinc-800 text-white focus:border-zinc-700 rounded-lg"
                     disabled={loading}
                   />
                   <p className="text-xs text-gray-500">
@@ -240,7 +234,7 @@ export default function ContactUsPage() {
 
                 {/* Subject Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="subject" className="text-gray-900 font-semibold">
+                  <Label htmlFor="subject" className="text-white font-semibold">
                     Subject *
                   </Label>
                   <Input
@@ -249,14 +243,14 @@ export default function ContactUsPage() {
                     value={formData.subject}
                     onChange={handleInputChange}
                     placeholder="e.g., How to use video ideas feature?"
-                    className="border-2 border-gray-300 focus:border-purple-500 rounded-lg"
+                    className="bg-black border border-zinc-800 text-white focus:border-zinc-700 rounded-lg"
                     disabled={loading}
                   />
                 </div>
 
                 {/* Message Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="message" className="text-gray-900 font-semibold">
+                  <Label htmlFor="message" className="text-white font-semibold">
                     Message *
                   </Label>
                   <Textarea
@@ -265,18 +259,18 @@ export default function ContactUsPage() {
                     value={formData.message}
                     onChange={handleInputChange}
                     placeholder="Please describe your question or issue in detail..."
-                    className="border-2 border-gray-300 focus:border-purple-500 rounded-lg min-h-40"
+                    className="bg-black border border-zinc-800 text-white focus:border-zinc-700 rounded-lg min-h-40"
                     disabled={loading}
                   />
                   <p className="text-xs text-gray-500">
-                    Be as detailed as possible to help us provide a better response
+                    Be as detailed as possible to help us provide a better
+                    response
                   </p>
                 </div>
 
                 {/* Error Message */}
                 {error && (
                   <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
                     <p className="text-red-800 text-sm">{error}</p>
                   </div>
                 )}
@@ -285,19 +279,9 @@ export default function ContactUsPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition-all"
+                  className="w-full bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 py-3"
                 >
-                  {loading ? (
-                    <>
-                      <Loader className="h-4 w-4 mr-2 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Send Message
-                    </>
-                  )}
+                  {loading ? "Submitting..." : "Send Message"}
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
@@ -310,17 +294,17 @@ export default function ContactUsPage() {
 
         {/* FAQ Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Frequently Asked Questions
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             {faqs.map((faq, index) => (
-              <Card key={index} className="bg-white">
+              <Card key={index} className="bg-zinc-900 border-zinc-800">
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold text-gray-900 mb-2">
+                  <h3 className="font-semibold text-white mb-2">
                     {faq.question}
                   </h3>
-                  <p className="text-sm text-gray-600">{faq.answer}</p>
+                  <p className="text-sm text-gray-400">{faq.answer}</p>
                 </CardContent>
               </Card>
             ))}
