@@ -1,31 +1,18 @@
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Mail,
-  Edit3,
-  Save,
-  X,
-  CheckCircle,
+  Settings as SettingsIcon,
+  RotateCcw,
+  Trash2,
   AlertCircle,
-  LogIn,
-  RefreshCw,
-  Clock,
-  Calendar,
-  Globe,
-  Target,
-  Filter,
-  Film,
-  Shield,
-  Link2,
-  Unlink,
+  CheckCircle,
 } from "lucide-react";
-import { toast } from "sonner";
 
 type Settings = {
   emailEnabled: boolean;
@@ -41,8 +28,26 @@ type Settings = {
   };
 };
 
-// Dropdown options
-const FOCUS_AREA_OPTIONS = [
+type EmailLog = {
+  id: string;
+  subject: string;
+  recipientEmail: string;
+  status: "sent" | "delivered" | "failed";
+  ideaCount: number;
+  sentAt: string;
+  deliveredAt?: string;
+  failureReason?: string;
+};
+
+type ChannelStatus = {
+  isConnected: boolean;
+  channelName?: string;
+  syncStatus?: "syncing" | "synced" | "failed" | "disconnected";
+  lastSyncedAt?: string;
+};
+
+// FOCUS AREA, AVOID TOPICS, FORMATS DROPDOWNS
+const FOCUS_AREAS = [
   "AI & Machine Learning",
   "Business & Entrepreneurship",
   "Cooking & Recipes",
@@ -56,10 +61,9 @@ const FOCUS_AREA_OPTIONS = [
   "Social Media Tips",
   "Technology & Science",
   "Travel & Lifestyle",
-  "Other"
 ];
 
-const AVOID_TOPIC_OPTIONS = [
+const AVOID_TOPICS = [
   "Politics",
   "Religion",
   "Violence",
@@ -68,10 +72,9 @@ const AVOID_TOPIC_OPTIONS = [
   "Conspiracy Theories",
   "Negativity",
   "Misinformation",
-  "Other"
 ];
 
-const FORMAT_OPTIONS = [
+const PREFERRED_FORMATS = [
   "Tutorial",
   "How-To",
   "Vlog",
@@ -84,32 +87,33 @@ const FORMAT_OPTIONS = [
   "Educational",
   "Entertainment",
   "Short-Form (Shorts)",
-  "Other"
 ];
 
-function getClientTimezone(): string {
-  if (typeof window === "undefined") return "UTC";
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  } catch {
-    return "UTC";
-  }
-}
-
 export default function SettingsPage() {
-  const { data: session, status } = useSession();
+  const router = useRouter();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [editedSettings, setEditedSettings] = useState<Settings | null>(null);
+  const [emailHistory, setEmailHistory] = useState<EmailLog[]>([]);
+  const [channelStatus, setChannelStatus] = useState<ChannelStatus>({
+    isConnected: false,
+  });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
   const [alertMessage, setAlertMessage] = useState<{
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
 
-  const timezones = useMemo(
-    () => [
+  const timezones = useMemo(() => {
+    if (typeof Intl !== "undefined" && "supportedValuesOf" in Intl) {
+      return (Intl as any).supportedValuesOf("timeZone") as string[];
+    }
+    return [
       "UTC",
       "America/New_York",
       "America/Chicago",
@@ -120,78 +124,110 @@ export default function SettingsPage() {
       "Asia/Kolkata",
       "Asia/Singapore",
       "Australia/Sydney",
-    ],
-    []
-  );
+      "Indian/Cocos",
+    ];
+  }, []);
 
-  // Load settings on mount
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.email) {
-      loadSettings();
-    } else if (status === "unauthenticated") {
-      setLoading(false);
-    }
-  }, [status, session?.user?.email]);
-
-  const loadSettings = async () => {
+  const getClientTimezone = () => {
+    if (typeof window === "undefined") return "UTC";
     try {
-      setLoading(true);
-      const response = await fetch("/api/settings/preferences", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      if (!response.ok) throw new Error("Failed to load settings");
-
-      const data = await response.json();
-      const clientTimezone = getClientTimezone();
-      const settingsWithTimezone = {
-        ...data.settings,
-        timezone: data.settings.timezone || clientTimezone,
-      };
-
-      setSettings(settingsWithTimezone);
-      setEditedSettings(settingsWithTimezone);
-    } catch (error) {
-      setAlertMessage({
-        type: "error",
-        message: (error as Error).message || "Failed to load settings",
-      });
-    } finally {
-      setLoading(false);
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    } catch {
+      return "UTC";
     }
+  };
+
+  // Load initial data
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [prefRes, historyRes, channelRes] = await Promise.all([
+          fetch("/api/settings/preferences"),
+          fetch("/api/email/history?limit=10&page=1"),
+          fetch("/api/youtube/connect"),
+        ]);
+
+        if (prefRes.ok) {
+          const prefData = await prefRes.json();
+          const defaultTimezone = prefData.settings.timezone || getClientTimezone();
+          setSettings({
+            ...prefData.settings,
+            timezone: defaultTimezone,
+          });
+          setEditedSettings({
+            ...prefData.settings,
+            timezone: defaultTimezone,
+          });
+        }
+
+        if (historyRes.ok) {
+          const historyData = await historyRes.json();
+          setEmailHistory(historyData.emails);
+          setTotalPages(historyData.pagination.pages);
+        }
+
+        if (channelRes.ok) {
+          const channelData = await channelRes.json();
+          setChannelStatus({
+            isConnected: channelData.connected,
+            channelName: channelData.channelName,
+            syncStatus: channelData.connected ? (channelData.syncStatus || "synced") : "disconnected",
+            lastSyncedAt: channelData.lastSyncedAt,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+        showAlert("Error loading settings", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Load email history for different pages
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const res = await fetch(`/api/email/history?limit=10&page=${historyPage}`);
+        if (res.ok) {
+          const data = await res.json();
+          setEmailHistory(data.emails);
+        }
+      } catch (error) {
+        console.error("Error loading email history:", error);
+      }
+    };
+
+    loadHistory();
+  }, [historyPage]);
+
+  const showAlert = (message: string, type: "success" | "error" | "info" = "info") => {
+    setAlertMessage({ type, message });
+    setTimeout(() => setAlertMessage(null), 4000);
   };
 
   const handleSaveSettings = async () => {
     if (!editedSettings) return;
-    setSaving(true);
+
     try {
-      const response = await fetch("/api/settings/preferences", {
+      const res = await fetch("/api/settings/preferences", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ settings: editedSettings }),
       });
 
-      if (!response.ok) throw new Error("Failed to save settings");
-
-      const data = await response.json();
-      setSettings(data.settings);
-      setEditedSettings(data.settings);
-      setIsEditMode(false);
-      setAlertMessage({
-        type: "success",
-        message: "Changes have been saved",
-      });
-      setTimeout(() => setAlertMessage(null), 4000);
+      if (res.ok) {
+        setSettings(editedSettings);
+        setIsEditMode(false);
+        showAlert("Settings saved successfully!", "success");
+      } else {
+        showAlert("Error saving settings", "error");
+      }
     } catch (error) {
-      setAlertMessage({
-        type: "error",
-        message: (error as Error).message || "Failed to save settings",
-      });
-    } finally {
-      setSaving(false);
+      showAlert("Error saving settings", "error");
     }
   };
 
@@ -200,43 +236,140 @@ export default function SettingsPage() {
     setIsEditMode(false);
   };
 
+  const handleSendTestEmail = async () => {
+    setSending(true);
+    try {
+      const res = await fetch("/api/debug/send-email-now");
+      const data = await res.json();
+      if (data.success) {
+        showAlert("Test email sent! Check your inbox.", "success");
+        // Refresh email history
+        const historyRes = await fetch("/api/email/history?limit=10&page=1");
+        if (historyRes.ok) {
+          const historyData = await historyRes.json();
+          setEmailHistory(historyData.emails);
+          setTotalPages(historyData.pagination.pages);
+        }
+      } else {
+        showAlert(`Error: ${data.error}`, "error");
+      }
+    } catch (error) {
+      showAlert("Error sending test email", "error");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleResyncChannel = async () => {
+    if (!channelStatus.isConnected) {
+      showAlert("Channel not connected", "error");
+      return;
+    }
+
+    setSyncing(true);
+    setChannelStatus((prev) => ({
+      ...prev,
+      syncStatus: "syncing",
+    }));
+
+    try {
+      const res = await fetch("/api/youtube/sync", { method: "POST" });
+      if (res.ok) {
+        showAlert("Channel sync started!", "success");
+        
+        // Refresh channel status after a delay
+        setTimeout(async () => {
+          const channelRes = await fetch("/api/youtube/connect");
+          if (channelRes.ok) {
+            const data = await channelRes.json();
+            setChannelStatus({
+              isConnected: data.connected,
+              channelName: data.channelName,
+              syncStatus: data.connected ? (data.syncStatus || "synced") : "disconnected",
+              lastSyncedAt: data.lastSyncedAt,
+            });
+          }
+        }, 3000);
+      } else {
+        showAlert("Error syncing channel", "error");
+        setChannelStatus((prev) => ({
+          ...prev,
+          syncStatus: "failed",
+        }));
+      }
+    } catch (error) {
+      showAlert("Error syncing channel", "error");
+      setChannelStatus((prev) => ({
+        ...prev,
+        syncStatus: "failed",
+      }));
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleDisconnectChannel = async () => {
+    if (!confirm("Are you sure you want to disconnect your YouTube channel?")) {
+      return;
+    }
+
+    setDisconnecting(true);
+    try {
+      const res = await fetch("/api/youtube/disconnect", { method: "POST" });
+      if (res.ok) {
+        setChannelStatus({
+          isConnected: false,
+          syncStatus: "disconnected",
+          lastSyncedAt: undefined,
+        });
+        showAlert("Channel disconnected successfully", "success");
+      } else {
+        showAlert("Error disconnecting channel", "error");
+      }
+    } catch (error) {
+      showAlert("Error disconnecting channel", "error");
+    } finally {
+      setDisconnecting(false);
+    }
+  };
+
+  const handleConnectChannel = () => {
+    router.push("/dashboard");
+  };
+
+  const getStatusColor = (status: "sent" | "delivered" | "failed") => {
+    switch (status) {
+      case "delivered":
+        return "bg-green-100 text-green-800";
+      case "failed":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getSyncStatusColor = (status?: string) => {
+    switch (status) {
+      case "synced":
+        return "bg-green-100 text-green-800";
+      case "syncing":
+        return "bg-blue-100 text-blue-800 animate-pulse";
+      case "failed":
+        return "bg-red-100 text-red-800";
+      case "disconnected":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
-        <div className="h-20" />
-        <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-          <Skeleton className="h-12 w-64 bg-zinc-800" />
-          <Skeleton className="h-96 bg-zinc-800" />
-        </div>
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    return (
-      <div className="min-h-screen bg-black">
-        <div className="h-20" />
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <Card className="bg-red-950/20 border-red-900/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-400">
-                <Shield className="h-5 w-5" />
-                Authentication Required
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-red-700 mb-4">
-                You need to be logged in to access settings.
-              </p>
-              <Button
-                onClick={() => signIn()}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <LogIn className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-slate-50 p-6 pt-32">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-96" />
+          <Skeleton className="h-96" />
         </div>
       </div>
     );
@@ -244,27 +377,11 @@ export default function SettingsPage() {
 
   if (!settings || !editedSettings) {
     return (
-      <div className="min-h-screen bg-black">
-        <div className="h-20" />
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <Card className="bg-red-950/20 border-red-900/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-400">
-                <AlertCircle className="h-5 w-5" />
-                Error Loading Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-red-700 mb-4">
-                {alertMessage?.message || "Failed to load settings."}
-              </p>
-              <Button
-                onClick={loadSettings}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
-              </Button>
+      <div className="min-h-screen bg-slate-50 p-6 pt-32">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="pt-6">
+              <p className="text-red-800">Error loading settings</p>
             </CardContent>
           </Card>
         </div>
@@ -273,47 +390,30 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Navbar space */}
-      <div className="h-20" />
-
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Header */}
+    <div className="min-h-screen bg-slate-50 p-6 pt-32">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header with Edit Button */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold">Settings</h1>
-            <p className="text-gray-600 mt-2">
-              Manage your email preferences and content filters
-            </p>
+            <h1 className="text-3xl font-bold">Settings</h1>
+            <p className="text-gray-600">Manage your preferences and email settings</p>
           </div>
-
           {!isEditMode ? (
             <Button
               onClick={() => setIsEditMode(true)}
-              size="lg"
-              className="bg-purple-600 hover:bg-purple-700 gap-2"
+              className="bg-purple-600 hover:bg-purple-700"
             >
-              <Edit3 className="h-4 w-4" />
-              Edit Settings
+              Edit
             </Button>
           ) : (
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <Button
                 onClick={handleSaveSettings}
-                disabled={saving}
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 gap-2"
+                className="bg-green-600 hover:bg-green-700"
               >
-                <Save className="h-4 w-4" />
-                {saving ? "Saving..." : "Save Changes"}
+                Save
               </Button>
-              <Button
-                onClick={handleCancel}
-                variant="outline"
-                size="lg"
-                className="gap-2 border-zinc-700 text-gray-300"
-              >
-                <X className="h-4 w-4" />
+              <Button onClick={handleCancel} variant="outline">
                 Cancel
               </Button>
             </div>
@@ -323,11 +423,13 @@ export default function SettingsPage() {
         {/* Alerts */}
         {alertMessage && (
           <Card
-            className={
+            className={`${
               alertMessage.type === "success"
                 ? "border-green-200 bg-green-50"
-                : "border-red-200 bg-red-50"
-            }
+                : alertMessage.type === "error"
+                ? "border-red-200 bg-red-50"
+                : "border-blue-200 bg-blue-50"
+            }`}
           >
             <CardContent className="pt-6 flex items-center gap-3">
               {alertMessage.type === "success" ? (
@@ -339,7 +441,9 @@ export default function SettingsPage() {
                 className={
                   alertMessage.type === "success"
                     ? "text-green-800"
-                    : "text-red-800"
+                    : alertMessage.type === "error"
+                    ? "text-red-800"
+                    : "text-blue-800"
                 }
               >
                 {alertMessage.message}
@@ -349,25 +453,23 @@ export default function SettingsPage() {
         )}
 
         {/* Email Schedule */}
-        <Card className="border-2 border-gray-200">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-purple-600" />
               Email Schedule
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6 pt-6">
+          <CardContent className="space-y-6">
             {!isEditMode ? (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-5 bg-purple-950/20 rounded-xl border-2 border-purple-900/30">
-                  <span className="font-semibold text-white text-lg">
-                    Weekly Email Notifications
-                  </span>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg border border-slate-200">
+                  <span className="font-semibold">Weekly Emails</span>
                   <Badge
                     className={
                       editedSettings.emailEnabled
-                        ? "bg-green-600 text-white text-base px-4 py-2"
-                        : "bg-gray-700 text-gray-300 text-base px-4 py-2"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
                     }
                   >
                     {editedSettings.emailEnabled ? "Enabled" : "Disabled"}
@@ -375,64 +477,37 @@ export default function SettingsPage() {
                 </div>
 
                 {editedSettings.emailEnabled && (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="p-5 bg-zinc-800/50 rounded-xl border border-zinc-700">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="h-5 w-5 text-blue-400" />
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                          Frequency
-                        </p>
-                      </div>
-                      <p className="font-semibold text-white text-lg capitalize">
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-gray-600 uppercase font-medium">Frequency</p>
+                      <p className="font-semibold mt-2 capitalize">
                         {editedSettings.emailFrequency}
                       </p>
                     </div>
-
-                    <div className="p-5 bg-zinc-800/50 rounded-xl border border-zinc-700">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="h-5 w-5 text-green-400" />
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                          Day
-                        </p>
-                      </div>
-                      <p className="font-semibold text-white text-lg capitalize">
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-gray-600 uppercase font-medium">Day</p>
+                      <p className="font-semibold mt-2 capitalize">
                         {editedSettings.emailDay}
                       </p>
                     </div>
-
-                    <div className="p-5 bg-zinc-800/50 rounded-xl border border-zinc-700">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Clock className="h-5 w-5 text-purple-400" />
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                          Time
-                        </p>
-                      </div>
-                      <p className="font-semibold text-white text-lg">
-                        {editedSettings.emailTime}
-                      </p>
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-gray-600 uppercase font-medium">Time</p>
+                      <p className="font-semibold mt-2">{editedSettings.emailTime}</p>
                     </div>
-                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <p className="text-xs font-medium text-gray-600 uppercase">
-                        Timezone
-                      </p>
-                      <p className="font-semibold text-gray-900 mt-2">
-                        {editedSettings.timezone}
-                      </p>
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-gray-600 uppercase font-medium">Timezone</p>
+                      <p className="font-semibold mt-2">{editedSettings.timezone}</p>
                     </div>
-                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <p className="text-xs font-medium text-gray-600 uppercase">
-                        Ideas per Email
-                      </p>
-                      <p className="font-semibold text-gray-900 mt-2">
-                        {editedSettings.ideaCount}
-                      </p>
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-gray-600 uppercase font-medium">Ideas per Email</p>
+                      <p className="font-semibold mt-2">{editedSettings.ideaCount}</p>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="space-y-6">
-                <label className="flex items-center gap-4 p-5 bg-purple-950/20 rounded-xl border-2 border-purple-900/30 cursor-pointer hover:bg-purple-950/30 transition-all">
+              <>
+                <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={editedSettings.emailEnabled}
@@ -442,11 +517,9 @@ export default function SettingsPage() {
                         emailEnabled: e.target.checked,
                       })
                     }
-                    className="w-6 h-6 rounded cursor-pointer accent-purple-600"
+                    className="w-5 h-5 rounded accent-purple-600"
                   />
-                  <span className="font-semibold text-gray-900">
-                    Enable weekly email ideas
-                  </span>
+                  <span className="font-semibold">Enable weekly email ideas</span>
                 </label>
 
                 {editedSettings.emailEnabled && (
@@ -523,14 +596,24 @@ export default function SettingsPage() {
                         <label className="block text-sm font-semibold text-gray-900 mb-2">
                           Timezone
                         </label>
-                        <input
-                          type="text"
+                        <select
                           value={editedSettings.timezone}
-                          disabled
-                          className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 text-sm font-medium bg-gray-100 cursor-not-allowed"
-                        />
+                          onChange={(e) =>
+                            setEditedSettings({
+                              ...editedSettings,
+                              timezone: e.target.value,
+                            })
+                          }
+                          className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:border-purple-500 max-h-48 overflow-y-auto"
+                        >
+                          {timezones.map((tz) => (
+                            <option key={tz} value={tz}>
+                              {tz}
+                            </option>
+                          ))}
+                        </select>
                         <p className="text-xs text-gray-500 mt-1">
-                          Auto-detected: {getClientTimezone()}
+                          Auto-detected: <strong>{getClientTimezone()}</strong>
                         </p>
                       </div>
 
@@ -556,72 +639,75 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 )}
-              </div>
+
+                <Button
+                  onClick={handleSendTestEmail}
+                  disabled={sending}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {sending ? "Sending..." : "Send Test Email"}
+                </Button>
+              </>
             )}
           </CardContent>
         </Card>
 
-        {/* Content Preferences */}
-        <Card className="border-2 border-gray-200 bg-gradient-to-br from-white to-blue-50">
+        {/* Content Preferences - WITH DROPDOWNS */}
+        <Card>
           <CardHeader>
             <CardTitle>🎯 Content Preferences</CardTitle>
-            <p className="text-sm text-gray-600 mt-3">
-              These preferences control which video ideas are generated and sent to your emails.
+            <p className="text-sm text-gray-600 mt-2">
+              Select preferences to filter which video ideas are generated and sent to you
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {!isEditMode ? (
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
-                  <p className="text-xs font-bold text-gray-700 uppercase mb-2">
-                    📌 Focus Areas
-                  </p>
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xs font-bold text-gray-700 uppercase mb-3">📌 Focus Areas</p>
                   <div className="flex flex-wrap gap-2">
                     {editedSettings.preferences?.focusAreas &&
                     editedSettings.preferences.focusAreas.length > 0 ? (
                       editedSettings.preferences.focusAreas.map((area, i) => (
-                        <Badge key={i} variant="secondary">
+                        <Badge key={i} variant="secondary" className="text-xs">
                           {area}
                         </Badge>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-500">Not set</p>
+                      <p className="text-sm text-gray-500">Not selected</p>
                     )}
                   </div>
                 </div>
 
-                <div className="p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-lg border-2 border-red-200">
-                  <p className="text-xs font-bold text-gray-700 uppercase mb-2">
-                    Avoid Topics
-                  </p>
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-xs font-bold text-gray-700 uppercase mb-3">🚫 Avoid Topics</p>
                   <div className="flex flex-wrap gap-2">
                     {editedSettings.preferences?.avoidTopics &&
                     editedSettings.preferences.avoidTopics.length > 0 ? (
                       editedSettings.preferences.avoidTopics.map((topic, i) => (
-                        <Badge key={i} variant="destructive">
+                        <Badge key={i} variant="destructive" className="text-xs">
                           {topic}
                         </Badge>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-500">Not set</p>
+                      <p className="text-sm text-gray-500">Not selected</p>
                     )}
                   </div>
                 </div>
 
-                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border-2 border-green-200">
-                  <p className="text-xs font-bold text-gray-700 uppercase mb-2">
-                    Preferred Formats
-                  </p>
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-xs font-bold text-gray-700 uppercase mb-3">📹 Formats</p>
                   <div className="flex flex-wrap gap-2">
                     {editedSettings.preferences?.preferredFormats &&
                     editedSettings.preferences.preferredFormats.length > 0 ? (
                       editedSettings.preferences.preferredFormats.map((format, i) => (
-                        <Badge key={i} variant="outline">
+                        <Badge key={i} variant="outline" className="text-xs">
                           {format}
                         </Badge>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-500">Not set</p>
+                      <p className="text-sm text-gray-500">Not selected</p>
                     )}
                   </div>
                 </div>
@@ -630,25 +716,17 @@ export default function SettingsPage() {
               <>
                 {/* Focus Areas Dropdown */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Focus Areas (Select all that apply)
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                    📌 Focus Areas
                   </label>
-                  <div className="grid md:grid-cols-2 gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    {FOCUS_AREA_OPTIONS.map((area) => (
-                      <label
-                        key={area}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-blue-100 p-2 rounded"
-                      >
+                  <div className="grid md:grid-cols-2 gap-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    {FOCUS_AREAS.map((area) => (
+                      <label key={area} className="flex items-center gap-2 cursor-pointer hover:bg-blue-100 p-2 rounded">
                         <input
                           type="checkbox"
-                          checked={
-                            editedSettings.preferences?.focusAreas?.includes(
-                              area
-                            ) || false
-                          }
+                          checked={editedSettings.preferences?.focusAreas?.includes(area) || false}
                           onChange={(e) => {
-                            const areas =
-                              editedSettings.preferences?.focusAreas || [];
+                            const areas = editedSettings.preferences?.focusAreas || [];
                             if (e.target.checked) {
                               areas.push(area);
                             } else {
@@ -673,25 +751,17 @@ export default function SettingsPage() {
 
                 {/* Avoid Topics Dropdown */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Avoid Topics (Select all that apply)
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                    🚫 Avoid Topics
                   </label>
-                  <div className="grid md:grid-cols-2 gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
-                    {AVOID_TOPIC_OPTIONS.map((topic) => (
-                      <label
-                        key={topic}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-red-100 p-2 rounded"
-                      >
+                  <div className="grid md:grid-cols-2 gap-2 p-4 bg-red-50 rounded-lg border border-red-200">
+                    {AVOID_TOPICS.map((topic) => (
+                      <label key={topic} className="flex items-center gap-2 cursor-pointer hover:bg-red-100 p-2 rounded">
                         <input
                           type="checkbox"
-                          checked={
-                            editedSettings.preferences?.avoidTopics?.includes(
-                              topic
-                            ) || false
-                          }
+                          checked={editedSettings.preferences?.avoidTopics?.includes(topic) || false}
                           onChange={(e) => {
-                            const topics =
-                              editedSettings.preferences?.avoidTopics || [];
+                            const topics = editedSettings.preferences?.avoidTopics || [];
                             if (e.target.checked) {
                               topics.push(topic);
                             } else {
@@ -716,25 +786,17 @@ export default function SettingsPage() {
 
                 {/* Preferred Formats Dropdown */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Preferred Formats (Select all that apply)
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                    📹 Preferred Formats
                   </label>
-                  <div className="grid md:grid-cols-2 gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
-                    {FORMAT_OPTIONS.map((format) => (
-                      <label
-                        key={format}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-green-100 p-2 rounded"
-                      >
+                  <div className="grid md:grid-cols-2 gap-2 p-4 bg-green-50 rounded-lg border border-green-200">
+                    {PREFERRED_FORMATS.map((format) => (
+                      <label key={format} className="flex items-center gap-2 cursor-pointer hover:bg-green-100 p-2 rounded">
                         <input
                           type="checkbox"
-                          checked={
-                            editedSettings.preferences?.preferredFormats?.includes(
-                              format
-                            ) || false
-                          }
+                          checked={editedSettings.preferences?.preferredFormats?.includes(format) || false}
                           onChange={(e) => {
-                            const formats =
-                              editedSettings.preferences?.preferredFormats || [];
+                            const formats = editedSettings.preferences?.preferredFormats || [];
                             if (e.target.checked) {
                               formats.push(format);
                             } else {
@@ -756,6 +818,183 @@ export default function SettingsPage() {
                     ))}
                   </div>
                 </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Email History */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Email History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {emailHistory.length === 0 ? (
+              <div className="text-center py-8">
+                <Mail className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-600">No emails sent yet</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-3 font-semibold">Status</th>
+                        <th className="text-left py-3 px-3 font-semibold">Subject</th>
+                        <th className="text-left py-3 px-3 font-semibold">Ideas</th>
+                        <th className="text-left py-3 px-3 font-semibold">Date & Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {emailHistory.map((email) => (
+                        <tr key={email.id} className="border-b hover:bg-slate-50">
+                          <td className="py-3 px-3">
+                            <Badge className={getStatusColor(email.status)}>
+                              {email.status.charAt(0).toUpperCase() +
+                                email.status.slice(1)}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-3">
+                            <div>
+                              <p className="font-medium">{email.subject}</p>
+                              {email.failureReason && (
+                                <p className="text-xs text-red-600">
+                                  Failed: {email.failureReason}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-3">{email.ideaCount}</td>
+                          <td className="py-3 px-3">
+                            <p>{new Date(email.sentAt).toLocaleDateString()}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(email.sentAt).toLocaleTimeString()}
+                            </p>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={historyPage === 1}
+                      onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
+                    >
+                      Previous
+                    </Button>
+                    <span className="flex items-center px-3 text-sm">
+                      Page {historyPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={historyPage === totalPages}
+                      onClick={() =>
+                        setHistoryPage(Math.min(totalPages, historyPage + 1))
+                      }
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Channel Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5" />
+              YouTube Channel Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {channelStatus.isConnected ? (
+              <>
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800 font-semibold">
+                    {channelStatus.channelName}
+                  </p>
+                  <p className="text-sm text-blue-700 mt-3">
+                    <span className="font-medium">Sync Status:</span>{" "}
+                    <Badge className={`ml-2 ${getSyncStatusColor(channelStatus.syncStatus)}`}>
+                      {channelStatus.syncStatus?.charAt(0).toUpperCase() +
+                        (channelStatus.syncStatus?.slice(1) || "")}
+                    </Badge>
+                  </p>
+                  {channelStatus.lastSyncedAt && (
+                    <p className="text-sm text-blue-700 mt-2">
+                      <span className="font-medium">Last Synced:</span>{" "}
+                      {new Date(channelStatus.lastSyncedAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    onClick={handleResyncChannel}
+                    disabled={syncing || !channelStatus.isConnected}
+                    className={`${
+                      syncing || !channelStatus.isConnected
+                        ? "bg-gray-400 text-gray-700 cursor-not-allowed opacity-60 hover:bg-gray-400"
+                        : "bg-purple-600 hover:bg-purple-700"
+                    }`}
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    {syncing ? "Syncing..." : "Re-sync Channel"}
+                  </Button>
+                  <Button
+                    onClick={handleDisconnectChannel}
+                    disabled={disconnecting}
+                    className={`${
+                      disconnecting
+                        ? "bg-gray-400 text-gray-700 cursor-not-allowed opacity-60 hover:bg-gray-400"
+                        : "bg-purple-600 hover:bg-purple-700"
+                    }`}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {disconnecting ? "Disconnecting..." : "Disconnect Channel"}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <p className="text-sm text-yellow-800 font-semibold flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Sync Status: <Badge className={getSyncStatusColor(channelStatus.syncStatus)}>
+                      Disconnected
+                    </Badge>
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleConnectChannel}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  Connect YouTube Channel
+                </Button>
+
+                <Button
+                  onClick={handleResyncChannel}
+                  disabled={true}
+                  className="w-full bg-gray-400 text-gray-700 cursor-not-allowed opacity-60 hover:bg-gray-400"
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Re-sync Channel
+                </Button>
               </>
             )}
           </CardContent>
