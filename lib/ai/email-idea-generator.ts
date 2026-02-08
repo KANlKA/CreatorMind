@@ -5,7 +5,7 @@ import GeneratedIdea from "@/models/GeneratedIdea";
 import mongoose from "mongoose";
 import { generateJSON } from "./gemini";
 
-export async function generateVideoIdeas(userId: string, desiredCount: number = 5) {
+export async function generateVideoIdeas(userId: string, desiredCount: number = 5, preferences?: any) {
   await connectDB();
 
   const userObjectId = new mongoose.Types.ObjectId(userId);
@@ -53,6 +53,27 @@ export async function generateVideoIdeas(userId: string, desiredCount: number = 
     })),
   };
 
+  // Build preference constraints for prompt
+  let preferenceConstraints = "";
+
+  if (preferences) {
+    const focusAreas = preferences.focusAreas || [];
+    const avoidTopics = preferences.avoidTopics || [];
+    const preferredFormats = preferences.preferredFormats || [];
+
+    if (focusAreas.length > 0) {
+      preferenceConstraints += `\n\nFOCUS AREAS (MUST include these topics): ${focusAreas.join(", ")}`;
+    }
+
+    if (avoidTopics.length > 0) {
+      preferenceConstraints += `\n\nAVOID TOPICS (MUST NOT include these): ${avoidTopics.join(", ")}`;
+    }
+
+    if (preferredFormats.length > 0) {
+      preferenceConstraints += `\n\nPREFERRED FORMATS (MUST use these formats): ${preferredFormats.join(", ")}`;
+    }
+  }
+
   const prompt = `You are a YouTube content strategist. Generate ${desiredCount} video ideas for this creator based on their data.
 
 Creator Profile:
@@ -73,11 +94,13 @@ ${context.confusionAreas.map((a) => `- ${a}`).join("\n")}
 Recent Videos:
 ${context.recentVideos.map((v) => `- "${v.title}" (${v.engagement}% engagement)`).join("\n")}
 
-Generate ${desiredCount} video ideas that:
-1. Address audience requests from comments
-2. Use the creator's best-performing format and tone
-3. Fill knowledge gaps (confusion areas)
-4. Have high predicted engagement based on past performance
+${preferenceConstraints}
+
+CRITICAL REQUIREMENTS:
+1. Generate EXACTLY ${desiredCount} ideas
+${preferences?.focusAreas?.length > 0 ? `2. EVERY idea MUST include at least one of these topics: ${preferences.focusAreas.join(", ")}` : ""}
+${preferences?.avoidTopics?.length > 0 ? `3. ABSOLUTELY NO ideas about: ${preferences.avoidTopics.join(", ")}` : ""}
+${preferences?.preferredFormats?.length > 0 ? `4. ALL ideas MUST use ONLY these formats: ${preferences.preferredFormats.join(", ")}` : ""}
 
 For each idea, provide:
 - rank: 1-${desiredCount}
@@ -101,6 +124,8 @@ Do NOT use "audienceFit" or any other value for evidence.type.
 Return as JSON array with ${desiredCount} ideas.`;
 
   try {
+    console.log("🤖 Generating ideas with Gemini...");
+    console.log("Preferences:", preferences);
     const ideas = await generateJSON(prompt);
 
     // Validate and ensure we have the desired count

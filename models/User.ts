@@ -1,62 +1,110 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
-export interface IUser extends Document {
+interface EmailSettings {
+  enabled: boolean;
+  frequency: "weekly" | "biweekly" | "monthly";
+  day: string;
+  time: string;
+  timezone: string;
+  ideaCount: number;
+  preferences?: {
+    focusAreas: string[];
+    avoidTopics: string[];
+    preferredFormats: string[];
+  };
+}
+
+interface EmailLog {
+  sentAt: Date;
+  ideaCount: number;
+  status: "sent" | "delivered" | "bounced" | "failed";
+}
+
+interface IUser extends Document {
   email: string;
   name?: string;
   image?: string;
+  emailSettings?: EmailSettings;
+  emailHistory?: EmailLog[];
+  youtubeConnected: boolean;
   youtubeChannelId?: string;
-  youtubeChannelName?: string;
-  youtubeSubscriberCount?: number;
-  youtubeAccessToken?: string;
-  youtubeRefreshToken?: string;
-  settings: {
-    emailEnabled: boolean;  // ← ADD THIS
-    emailFrequency: 'weekly' | 'biweekly' | 'monthly';
-    emailDay: string;
-    emailTime: string;
-    timezone: string;
-    ideaCount: number;
-    preferences?: {
-      focusAreas?: string[];
-      avoidTopics?: string[];
-      preferredFormats?: string[];
-    };
-  };
-  lastSyncedAt?: Date;
-  syncStatus: 'pending' | 'syncing' | 'completed' | 'failed';
   createdAt: Date;
   updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUser>(
+const userSchema = new Schema<IUser>(
   {
-    email: { type: String, required: true, unique: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     name: String,
     image: String,
-    youtubeChannelId: { type: String, sparse: true, unique: true },
-    youtubeChannelName: String,
-    youtubeSubscriberCount: Number,
-    youtubeAccessToken: String,
-    youtubeRefreshToken: String,
-    settings: {
-      emailEnabled: { type: Boolean, default: true },  // ← ADD THIS
-      emailFrequency: { type: String, enum: ['weekly', 'biweekly', 'monthly'], default: 'weekly' },
-      emailDay: { type: String, default: 'sunday' },
-      emailTime: { type: String, default: '09:00' },
-      timezone: { type: String, default: 'America/New_York' },
-      ideaCount: { type: Number, default: 5 },
+    youtubeConnected: {
+      type: Boolean,
+      default: false,
+    },
+    youtubeChannelId: String,
+    emailSettings: {
+      enabled: {
+        type: Boolean,
+        default: false,
+      },
+      frequency: {
+        type: String,
+        enum: ["weekly", "biweekly", "monthly"],
+        default: "weekly",
+      },
+      day: {
+        type: String,
+        enum: [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ],
+        default: "monday",
+      },
+      time: {
+        type: String,
+        default: "09:00",
+      },
+      timezone: {
+        type: String,
+        default: "UTC",
+      },
+      ideaCount: {
+        type: Number,
+        default: 5,
+        min: 1,
+        max: 10,
+      },
       preferences: {
         focusAreas: [String],
         avoidTopics: [String],
         preferredFormats: [String],
       },
     },
-    lastSyncedAt: Date,
-    syncStatus: { type: String, enum: ['pending', 'syncing', 'completed', 'failed'], default: 'pending' },
+    emailHistory: [
+      {
+        sentAt: Date,
+        ideaCount: Number,
+        status: {
+          type: String,
+          enum: ["sent", "delivered", "bounced", "failed"],
+          default: "sent",
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+const User =
+  mongoose.models.User || mongoose.model<IUser>("User", userSchema);
 
 export default User;

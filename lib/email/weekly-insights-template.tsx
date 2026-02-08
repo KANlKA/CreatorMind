@@ -4,146 +4,200 @@ import {
   Preview,
   Body,
   Container,
+  Section,
   Heading,
   Text,
-  Section,
-  Hr,
   Button,
+  Hr,
   Link,
 } from "@react-email/components";
 
-export function WeeklyInsightsEmailTemplate({
+export function WeeklyInsightsEmail({
   userName,
   ideas,
-  insights = [],
-  patterns = [],
-  actions = [],
-  unsubscribeUrl,
+  timezone,
 }: {
   userName: string;
   ideas: any[];
-  insights?: string[];
-  patterns?: string[];
-  actions?: string[];
-  unsubscribeUrl: string;
+  timezone: string;
 }) {
   return (
     <Html>
       <Head />
-      <Preview>{`Your weekly creator intelligence - ${ideas.length} new ideas`}</Preview>
+      <Preview>{`Your ${ideas.length} weekly video ideas`}</Preview>
       <Body style={{ backgroundColor: "#f8fafc", margin: 0, padding: 0 }}>
         <Container style={container}>
           {/* Header */}
           <Section style={headerSection}>
-            <Section style={headerContent}>
-              <Heading style={mainTitle}>
-                💡 Your Weekly Video Ideas
-              </Heading>
-              <Text style={subtitle}>
-                {ideas.length} ideas to create this week
-              </Text>
-            </Section>
+            <Heading style={mainTitle}>
+              Your {ideas.length} Weekly Video Ideas
+            </Heading>
+            <Text style={subtitle}>
+              Personalized for you • {new Date().toLocaleDateString()}
+            </Text>
           </Section>
 
-          {/* Top Ideas Section */}
-          <Section style={cardSection}>
-            <Heading as="h2" style={sectionHeading}>
-              Ideas Ready to Create
-            </Heading>
+          {/* Content */}
+          <Section style={contentSection}>
+            <Text style={greeting}>Hello {userName},</Text>
+            <Text style={bodyText}>
+              Here are your top {ideas.length} video ideas based on your
+              preferences and audience insights:
+            </Text>
 
-            {ideas.map((idea, idx) => {
-              const confidence = Math.round(idea.confidence * 100);
-              const engagement = Math.round(idea.predictedEngagement * 100);
+            {/* Ideas */}
+            {ideas.map((idea, index) => (
+              <div key={index} style={ideaContainer as any}>
+                <Section style={ideaHeader}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      marginBottom: "8px",
+                    }}
+                  >
+                  </div>
+                  <Text style={ideaTitle}>{idea.title}</Text>
+                </Section>
 
-              return (
-                <Section key={idx} style={ideaCard}>
-                  <div style={{ display: "flex", gap: "12px" }}>
-                    <div style={rankBadgeContainer}>
-                      <Text style={rankBadge}>{String(idx + 1)}</Text>
+                <Section style={ideaBody}>
+                  {/* Confidence & Engagement */}
+                  <div style={metricsContainer as any}>
+                    <div style={metricBox}>
+                      <Text style={metricLabel}>Confidence Score</Text>
+                      <Text style={metricValue}>
+                        {Math.round((idea.confidence || 0) * 100)}%
+                      </Text>
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <Text style={ideaTitle}>{idea.title}</Text>
-                      <Text style={ideaMeta}>
-                        📊 {String(engagement)}% engagement • 🎯 {String(confidence)}% confidence
+                    <div style={metricBox}>
+                      <Text style={metricLabel}>Predicted Engagement</Text>
+                      <Text style={metricValue}>
+                        {(
+                          (idea.predictedEngagement || 0) * 100
+                        ).toFixed(1)}%
                       </Text>
                     </div>
                   </div>
 
-                  {/* Why It Works */}
+                  {/* Why It Will Work */}
                   {idea.reasoning && (
-                    <Section style={reasonSection}>
-                      <Text style={reasonTitle}>Why it will work:</Text>
+                    <div style={reasoningBox as any}>
+                      <Text style={reasoningTitle}>💡 Why This Will Work</Text>
                       {idea.reasoning.commentDemand && (
-                        <Text style={bulletPoint}>
-                          ✓ {idea.reasoning.commentDemand}
-                        </Text>
+                        <div style={reasoningItem as any}>
+                          <Text style={reasoningBullet}>•</Text>
+                          <Text style={reasoningText}>
+                            {idea.reasoning.commentDemand}
+                          </Text>
+                        </div>
                       )}
                       {idea.reasoning.pastPerformance && (
-                        <Text style={bulletPoint}>
-                          ✓ {idea.reasoning.pastPerformance}
-                        </Text>
+                        <div style={reasoningItem as any}>
+                          <Text style={reasoningBullet}>•</Text>
+                          <Text style={reasoningText}>
+                            {idea.reasoning.pastPerformance}
+                          </Text>
+                        </div>
                       )}
                       {idea.reasoning.audienceFit && (
-                        <Text style={bulletPoint}>
-                          ✓ {idea.reasoning.audienceFit}
-                        </Text>
+                        <div style={reasoningItem as any}>
+                          <Text style={reasoningBullet}>•</Text>
+                          <Text style={reasoningText}>
+                            {idea.reasoning.audienceFit}
+                          </Text>
+                        </div>
                       )}
-                    </Section>
+                    </div>
                   )}
 
                   {/* Suggested Structure */}
                   {idea.suggestedStructure && (
-                    <Section style={structureSection}>
-                      <Text style={structureTitle}>Content Structure</Text>
-                      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <div style={structureBox as any}>
+                      <Text style={structureTitle}>
+                        🎬 Suggested Structure
+                      </Text>
+                      <div style={structureGrid as any}>
                         {idea.suggestedStructure.format && (
-                          <Text style={structureTag}>
-                            📹 {idea.suggestedStructure.format}
-                          </Text>
+                          <div style={structureItem as any}>
+                            <Text style={structureLabel}>Format</Text>
+                            <Text style={structureValue}>
+                              {idea.suggestedStructure.format}
+                            </Text>
+                          </div>
                         )}
                         {idea.suggestedStructure.length && (
-                          <Text style={structureTag}>
-                            ⏱️ {idea.suggestedStructure.length}
-                          </Text>
+                          <div style={structureItem as any}>
+                            <Text style={structureLabel}>Length</Text>
+                            <Text style={structureValue}>
+                              {idea.suggestedStructure.length}
+                            </Text>
+                          </div>
                         )}
                         {idea.suggestedStructure.tone && (
-                          <Text style={structureTag}>
-                            🎨 {idea.suggestedStructure.tone}
-                          </Text>
+                          <div style={structureItem as any}>
+                            <Text style={structureLabel}>Tone</Text>
+                            <Text style={structureValue}>
+                              {idea.suggestedStructure.tone}
+                            </Text>
+                          </div>
+                        )}
+                        {idea.suggestedStructure.hook && (
+                          <div style={structureItem as any}>
+                            <Text style={structureLabel}>Hook</Text>
+                            <Text style={structureValue}>
+                              {idea.suggestedStructure.hook}
+                            </Text>
+                          </div>
                         )}
                       </div>
-                    </Section>
+                    </div>
                   )}
                 </Section>
-              );
-            })}
+              </div>
+            ))}
+
+            <Hr style={divider} />
+
+            {/* CTA */}
+            <Section style={ctaSection}>
+              <Button
+                href={`${process.env.NEXT_PUBLIC_APP_URL}`}
+                style={ctaButton}
+              >
+                Visit CreatorMind
+              </Button>
+            </Section>
+
+            {/* Footer Note */}
+            <Section style={noteSection}>
+              <Text style={noteText}>
+                <strong>Your Preferences Applied:</strong> These ideas are
+                filtered based on your content preferences, focus areas, and
+                preferred formats. You can update your settings anytime.
+              </Text>
+            </Section>
           </Section>
 
-          {/* CTA Button */}
-          <Section style={ctaSection}>
-            <Button
-              href={`${process.env.NEXT_PUBLIC_APP_URL}/ideas`}
-              style={ctaButton}
-            >
-              View All Ideas in Dashboard
-            </Button>
-          </Section>
+          <Hr style={divider} />
 
           {/* Footer */}
-          <Hr style={divider} />
           <Section style={footerSection}>
+            <Text style={footerText}>CreatorMind • {timezone} timezone</Text>
             <Text style={footerText}>
-              You're receiving this because weekly email insights are enabled in your
-              <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/settings`} style={footerLink}>
-                {" "}settings{" "}
+              <Link
+                href={`${process.env.NEXT_PUBLIC_APP_URL}/settings`}
+                style={footerLink}
+              >
+                Manage Preferences
               </Link>
-              .
-            </Text>
-            <Text style={footerText}>
-              <Link href={unsubscribeUrl} style={unsubscribeLink}>
-                Unsubscribe from emails
+              {" • "}
+              <Link
+                href={`${process.env.NEXT_PUBLIC_APP_URL}/settings`}
+                style={footerLink}
+              >
+                Unsubscribe
               </Link>
-              {" • "}© 2025 CreatorMind. All rights reserved.
             </Text>
           </Section>
         </Container>
@@ -152,13 +206,13 @@ export function WeeklyInsightsEmailTemplate({
   );
 }
 
+
 // Styles
 const container = {
   maxWidth: "600px",
   margin: "0 auto",
   padding: "20px",
-  fontFamily:
-    'Inter, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif',
+  fontFamily: 'Inter, -apple-system, "Segoe UI", sans-serif',
 };
 
 const headerSection = {
@@ -166,11 +220,6 @@ const headerSection = {
   borderRadius: "12px 12px 0 0",
   padding: "32px 24px",
   borderBottom: "3px solid #6366f1",
-  marginBottom: "0",
-};
-
-const headerContent = {
-  textAlign: "center" as const,
 };
 
 const mainTitle = {
@@ -178,119 +227,173 @@ const mainTitle = {
   fontSize: "28px",
   fontWeight: "700",
   color: "#0f172a",
-  lineHeight: "1.2",
 };
 
 const subtitle = {
   margin: "0",
-  fontSize: "16px",
-  color: "#475569",
-  lineHeight: "1.5",
+  fontSize: "14px",
+  color: "#64748b",
 };
 
-const cardSection = {
+const contentSection = {
   backgroundColor: "#ffffff",
-  borderRadius: "12px",
-  padding: "24px",
-  marginBottom: "16px",
-  border: "1px solid #e2e8f0",
+  borderRadius: "0 0 12px 12px",
+  padding: "32px 24px",
 };
 
-const sectionHeading = {
-  margin: "0 0 16px 0",
-  fontSize: "18px",
+const greeting = {
+  margin: "0 0 12px 0",
+  fontSize: "16px",
   fontWeight: "600",
   color: "#0f172a",
 };
 
-const ideaCard = {
-  backgroundColor: "#f8fafc",
-  borderRadius: "10px",
-  padding: "16px",
-  marginBottom: "12px",
+const bodyText = {
+  margin: "0 0 24px 0",
+  fontSize: "14px",
+  color: "#475569",
+  lineHeight: "1.6",
+};
+
+const ideaContainer = {
+  marginBottom: "24px",
   border: "1px solid #e2e8f0",
+  borderRadius: "8px",
+  overflow: "hidden",
 };
 
-const rankBadgeContainer = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
+const ideaHeader = {
+  backgroundColor: "#f1f5f9",
+  padding: "16px",
+  borderBottom: "2px solid #e2e8f0",
 };
 
-const rankBadge = {
-  backgroundColor: "#6366f1",
-  color: "#ffffff",
-  padding: "8px 10px",
-  borderRadius: "6px",
+const ideaRank = {
+  margin: "0",
   fontSize: "14px",
   fontWeight: "600",
-  margin: "0",
-  textAlign: "center" as const,
-  lineHeight: "1",
-  minWidth: "40px",
+  color: "#6366f1",
 };
 
 const ideaTitle = {
-  margin: "0 0 6px 0",
-  fontSize: "15px",
-  fontWeight: "600",
+  margin: "0",
+  fontSize: "16px",
+  fontWeight: "700",
   color: "#0f172a",
-  lineHeight: "1.4",
 };
 
-const ideaMeta = {
+const ideaBody = {
+  padding: "16px",
+};
+
+const metricsContainer = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "12px",
+  marginBottom: "16px",
+};
+
+const metricBox = {
+  padding: "12px",
+  backgroundColor: "#f0f4ff",
+  borderRadius: "6px",
+  border: "1px solid #dbeafe",
+};
+
+const metricLabel = {
+  margin: "0 0 4px 0",
+  fontSize: "12px",
+  color: "#475569",
+  fontWeight: "500",
+};
+
+const metricValue = {
+  margin: "0",
+  fontSize: "18px",
+  fontWeight: "700",
+  color: "#6366f1",
+};
+
+const reasoningBox = {
+  backgroundColor: "#f9fafb",
+  borderRadius: "6px",
+  padding: "12px",
+  marginBottom: "16px",
+  border: "1px solid #e5e7eb",
+};
+
+const reasoningTitle = {
+  margin: "0 0 8px 0",
+  fontSize: "14px",
+  fontWeight: "600",
+  color: "#0f172a",
+};
+
+const reasoningItem = {
+  display: "flex",
+  gap: "8px",
+  marginBottom: "8px",
+};
+
+const reasoningBullet = {
   margin: "0",
   fontSize: "12px",
-  color: "#64748b",
-  lineHeight: "1.4",
-};
-
-const reasonSection = {
-  marginTop: "12px",
-  paddingTop: "12px",
-  borderTop: "1px solid #e2e8f0",
-};
-
-const reasonTitle = {
-  margin: "0 0 8px 0",
-  fontSize: "13px",
+  color: "#6366f1",
   fontWeight: "600",
-  color: "#0f172a",
+  minWidth: "12px",
 };
 
-const bulletPoint = {
-  margin: "0 0 6px 0",
+const reasoningText = {
+  margin: "0",
   fontSize: "13px",
   color: "#334155",
   lineHeight: "1.5",
 };
 
-const structureSection = {
-  marginTop: "12px",
-  paddingTop: "12px",
-  borderTop: "1px solid #e2e8f0",
+const structureBox = {
+  backgroundColor: "#faf5ff",
+  borderRadius: "6px",
+  padding: "12px",
+  marginTop: "16px",
+  border: "1px solid #e9d5ff",
 };
 
 const structureTitle = {
   margin: "0 0 8px 0",
-  fontSize: "13px",
+  fontSize: "14px",
   fontWeight: "600",
   color: "#0f172a",
 };
 
-const structureTag = {
-  display: "inline-block",
-  backgroundColor: "#e2e8f0",
-  padding: "4px 8px",
+const structureGrid = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "8px",
+};
+
+const structureItem = {
+  padding: "8px",
+  backgroundColor: "#f3e8ff",
   borderRadius: "4px",
-  fontSize: "12px",
-  color: "#334155",
+};
+
+const structureLabel = {
+  margin: "0 0 2px 0",
+  fontSize: "11px",
+  color: "#6b21a8",
+  fontWeight: "600",
+};
+
+const structureValue = {
   margin: "0",
+  fontSize: "12px",
+  color: "#581c87",
+  fontWeight: "500",
 };
 
 const ctaSection = {
   textAlign: "center" as const,
-  padding: "24px",
+  margin: "24px 0",
 };
 
 const ctaButton = {
@@ -304,10 +407,25 @@ const ctaButton = {
   display: "inline-block",
 };
 
+const noteSection = {
+  backgroundColor: "#fef3c7",
+  borderRadius: "8px",
+  padding: "16px",
+  marginTop: "20px",
+  border: "1px solid #fcd34d",
+};
+
+const noteText = {
+  margin: "0",
+  fontSize: "12px",
+  color: "#92400e",
+  lineHeight: "1.6",
+};
+
 const divider = {
   borderColor: "#e2e8f0",
   borderTop: "1px solid #e2e8f0",
-  margin: "12px 0",
+  margin: "20px 0",
 };
 
 const footerSection = {
@@ -319,15 +437,9 @@ const footerText = {
   margin: "0 0 8px 0",
   fontSize: "12px",
   color: "#64748b",
-  lineHeight: "1.5",
 };
 
 const footerLink = {
-  color: "#6366f1",
-  textDecoration: "underline",
-};
-
-const unsubscribeLink = {
   color: "#6366f1",
   textDecoration: "underline",
 };

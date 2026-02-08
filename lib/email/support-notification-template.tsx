@@ -13,7 +13,7 @@ export function SupportNotificationEmail({
     <div style={containerStyle}>
       <div style={headerStyle}>
         <h2 style={titleStyle}>
-          ⚠️ Query Requires Manual Review
+          Query Requires Manual Review
         </h2>
         <p style={subtitleStyle}>
           This is a support notification for a query that requires team attention.

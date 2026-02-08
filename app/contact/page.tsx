@@ -104,7 +104,7 @@ export default function ContactUsPage() {
       setSubmitted(true);
       setSuccessMessage(
         data.message ||
-          "Your query has been received! Check your email for our response."
+          ""
       );
       setFormData({
         name: "",
@@ -181,13 +181,8 @@ export default function ContactUsPage() {
             {submitted && successMessage ? (
               <div className="space-y-4">
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 text-center">
-                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-green-900 mb-2">
-                    Query Submitted Successfully!
-                  </h3>
-                  <p className="text-green-800 mb-4">{successMessage}</p>
                   <p className="text-sm text-green-700">
-                    Please check your email for our detailed response.
+                    Your query has been received! Check your email for our response.
                   </p>
                 </div>
                 <Button

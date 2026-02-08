@@ -233,6 +233,7 @@ Unsubscribe:
 
 Pro Tip: Set emails for early morning so you see ideas first.Use Content Preferences to get hyper-focused, relevant ideas.`
 };
+
 // Function to find best matching pre-written response
 function findMatchingResponse(subject: string, message: string): string | null {
   const query = `${subject} ${message}`.toLowerCase();
@@ -378,53 +379,23 @@ ANSWER THEIR SPECIFIC QUESTION WITH STEPS AND DETAILS.`;
           throw new Error("Response too short");
         }
       } catch (apiError: any) {
-        // Handle API errors gracefully
+        // Handle API errors gracefully - just set aiResponse to null for fallback
         console.error("Gemini API error:", apiError?.message);
-
-        // Check if it's a quota error
-        if (apiError?.message?.includes("429") || apiError?.message?.includes("quota")) {
-          aiResponse = `Thank you for your question about: "${subject}"
-
-I apologize - I'm currently unable to generate a response due to high demand. However, here's what I recommend:
-
-Your Question: ${message}
-
-Try These Resources:
-1. Check our Settings → Help section for feature guides
-2. Visit our Dashboard for video ideas and insights
-3. Review our FAQs and documentation
-
-What We Can Help With:
-- Setting up weekly emails: Go to Settings → Enable Weekly Email Insights
-- Finding video ideas: Click Ideas → View ranked ideas
-- Understanding your audience: Check Insights page
-- Managing content preferences: Settings → Content Preferences
-
-Our support team will also respond to you shortly with a comprehensive answer to your specific question.
-
-Best regards,
-CreatorMind Support Team`;
-        } else {
-          aiResponse = null;
-        }
+        aiResponse = null;
       }
     }
 
-    // Fallback if everything fails
+    // Fallback if no response found (pre-written or Gemini)
     if (!aiResponse) {
-      aiResponse = `Thank you for reaching out to CreatorMind support!
+      aiResponse = `We received your question: "${subject}"
 
-We received your question: "${subject}"
+Our team is reviewing your inquiry and will provide a detailed response shortly. In the meantime, we recommend:
 
-Your Message: ${message}
+1. Checking our documentation for feature guides and tutorials
+2. Exploring the Help section in the Settings page
+3. Reviewing FAQs on our support page
 
-Quick Help:
-- Email setup: Settings → Enable Weekly Email Insights → Configure → Save
-- Video ideas: Click Ideas → View ranked suggestions
-- Audience insights: Insights page → Review formats, topics, trends
-- Content filtering: Settings → Content Preferences → Focus Areas/Avoid Topics
-
-Our support team will provide a detailed response shortly.
+We appreciate your patience and will get back to you soon with a comprehensive answer to your question.
 
 Best regards,
 CreatorMind Support Team`;
@@ -442,7 +413,7 @@ CreatorMind Support Team`;
 
     const emailResult = await sendEmailViaMailjet({
       to: email,
-      subject: `Re: ${subject}`,
+      subject: `Your question has been answered`,
       htmlContent: responseEmailHtml,
     });
 

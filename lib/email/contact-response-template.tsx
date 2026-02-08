@@ -67,10 +67,10 @@ export function ContactResponseEmail({
 
               <Section style={ctaSection}>
                 <Button
-                  href={`${process.env.NEXT_PUBLIC_APP_URL}/documentation`}
+                  href={`${process.env.NEXT_PUBLIC_APP_URL}`}
                   style={ctaButton}
                 >
-                  View Documentation
+                  Visit CreatorMind
                 </Button>
               </Section>
             </Section>
@@ -103,7 +103,7 @@ export function ContactResponseEmail({
       <Body style={{ backgroundColor: "#f8fafc", margin: 0, padding: 0 }}>
         <Container style={container}>
           <Section style={headerSection}>
-            <Heading style={mainTitle}>Your Answer is Ready</Heading>
+            <Heading style={mainTitle}>Here’s the Information You Requested</Heading>
             <Text style={subtitle}>Response to: {subject}</Text>
           </Section>
 
@@ -136,7 +136,7 @@ export function ContactResponseEmail({
 
             <Section style={noteBox}>
               <Text style={noteText}>
-                💡 You can explore our documentation or settings to learn more about CreatorMind features.
+                You can explore our documentation to learn more about CreatorMind features.
               </Text>
             </Section>
           </Section>
@@ -146,7 +146,7 @@ export function ContactResponseEmail({
           <Section style={footerSection}>
             <Text style={footerText}>
               Best regards,<br />
-              <strong>CreatorMind AI Support</strong>
+              <strong>CreatorMind Support</strong>
             </Text>
             <Text style={footerText}>
               <Link href={`${process.env.NEXT_PUBLIC_APP_URL}`} style={footerLink}>
