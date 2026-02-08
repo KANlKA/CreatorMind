@@ -48,9 +48,7 @@ export function Footer() {
           </div>
 
           <div className="flex gap-3">
-            <button className="px-4 py-1.5 rounded-full border border-white/20 text-sm">
-              Sign in
-            </button>
+           
             <button className="px-4 py-1.5 rounded-full bg-white text-black text-sm">
               Download
             </button>

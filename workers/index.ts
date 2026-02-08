@@ -55,12 +55,12 @@ async function main() {
           user.settings.preferences?.focusAreas &&
           user.settings.preferences.focusAreas.length > 0
         ) {
-          const focusAreas = user.settings.preferences.focusAreas.map((f) =>
+          const focusAreas = user.settings.preferences.focusAreas.map((f: string) =>
             f.toLowerCase()
           );
-          filteredIdeas = filteredIdeas.filter((idea) => {
+          filteredIdeas = filteredIdeas.filter((idea: any) => {
             const ideaTitle = idea.title?.toLowerCase() || "";
-            return focusAreas.some((area) => ideaTitle.includes(area));
+            return focusAreas.some((area: string) => ideaTitle.includes(area));
           });
         }
 
@@ -69,12 +69,12 @@ async function main() {
           user.settings.preferences?.avoidTopics &&
           user.settings.preferences.avoidTopics.length > 0
         ) {
-          const avoidTopics = user.settings.preferences.avoidTopics.map((t) =>
+          const avoidTopics = user.settings.preferences.avoidTopics.map((t: string) =>
             t.toLowerCase()
           );
-          filteredIdeas = filteredIdeas.filter((idea) => {
+          filteredIdeas = filteredIdeas.filter((idea: any) => {
             const ideaTitle = idea.title?.toLowerCase() || "";
-            return !avoidTopics.some((topic) => ideaTitle.includes(topic));
+            return !avoidTopics.some((topic: string) => ideaTitle.includes(topic));
           });
         }
 
@@ -84,14 +84,14 @@ async function main() {
           user.settings.preferences.preferredFormats.length > 0
         ) {
           const preferredFormats = user.settings.preferences.preferredFormats.map(
-            (f) => f.toLowerCase()
+            (f: string) => f.toLowerCase()
           );
           // Prioritize preferred formats
-          filteredIdeas = filteredIdeas.sort((a, b) => {
+          filteredIdeas = filteredIdeas.sort((a: any, b: any) => {
             const aFormat = a.suggestedStructure?.format?.toLowerCase() || "";
             const bFormat = b.suggestedStructure?.format?.toLowerCase() || "";
-            const aMatch = preferredFormats.some((f) => aFormat.includes(f)) ? 1 : 0;
-            const bMatch = preferredFormats.some((f) => bFormat.includes(f)) ? 1 : 0;
+            const aMatch = preferredFormats.some((f: string) => aFormat.includes(f)) ? 1 : 0;
+            const bMatch = preferredFormats.some((f: string) => bFormat.includes(f)) ? 1 : 0;
             return bMatch - aMatch;
           });
         }
@@ -169,16 +169,16 @@ async function main() {
       };
 
       const dayNumber = dayMap[emailDay.toLowerCase()] || 0;
-      const timeparts = emailTime.split(":");
-      
-      if (timeparts.length < 2) {
+      const timeParts = emailTime.split(":");
+
+      if (timeParts.length < 2) {
         console.log(
           `  ⚠️  ${user.email}: Invalid time format, skipping`
         );
         continue;
       }
 
-      const [hours, minutes] = timeparts;
+      const [hours, minutes] = timeParts;
 
       // Calculate cron expression based on frequency
       let cronPattern: string;

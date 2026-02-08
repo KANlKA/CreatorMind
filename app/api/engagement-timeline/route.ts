@@ -24,15 +24,33 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "90";
 
-    const rangeInDays = parseInt(range);
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - rangeInDays);
+    let startDate: Date | null = null;
+    if (range !== "all") {
+      const rangeInDays = parseInt(range);
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - rangeInDays);
+    }
+
+    console.log("[ENGAGEMENT TIMELINE] Query params:", {
+      userId: user._id.toString(),
+      range,
+      startDate: startDate ? startDate.toISOString() : "all time",
+    });
 
     // Fetch videos within the range
     const videos = await Video.find({
       userId: user._id,
-      publishedAt: range === "all" ? { $exists: true } : { $gte: startDate },
+      publishedAt: range === "all" ? { $exists: true } : { $gte: startDate! },
     }).select("publishedAt engagementRate views likes commentCount title videoId");
+
+    console.log("[ENGAGEMENT TIMELINE] Videos found:", videos.length);
+    if (videos.length > 0) {
+      console.log("[ENGAGEMENT TIMELINE] Sample video:", {
+        title: videos[0].title,
+        publishedAt: videos[0].publishedAt,
+        engagementRate: videos[0].engagementRate,
+      });
+    }
 
     if (videos.length === 0) {
       return NextResponse.json({

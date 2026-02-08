@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Brain, Video, MessageSquare, TrendingUp, Sparkles, BarChart3, ArrowRight, Briefcase } from "lucide-react";
+import { Brain, Video, MessageSquare, TrendingUp, Sparkles, BarChart3, ArrowRight, Briefcase, RefreshCw, ExternalLink, ChevronRight } from "lucide-react";
 import { VideoCarousel } from "@/components/dashboard/video-carousel";
 import { AudiencePulse } from "@/components/dashboard/audience-pulse";
 import { EngagementTimeline } from "@/components/dashboard/engagement-timeline";
+import GlareButton from "@/components/ui/GlareButton"
+
+
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -72,23 +75,59 @@ export default function DashboardPage() {
 
 function ConnectChannelPrompt({ onConnect }: { onConnect: () => void }) {
   return (
-    <div className="min-h-[calc(100vh-4rem)] pt-24
- bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full bg-white/10 backdrop-blur-md border-white/20">
-        <CardHeader className="text-center">
-          <Brain className="h-16 w-16 text-purple-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl text-white">Connect Your YouTube Channel</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-gray-300 mb-6 text-lg">
-            Let's analyze your channel to discover what's working and generate personalized video ideas.
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="h-20" />
+      <div className="relative z-10 max-w-md w-full">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-zinc-900 rounded-full border border-zinc-800 mb-6">
+            <Brain className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-3">Connect Your Channel</h1>
+          <p className="text-gray-400">
+            Analyze your content to discover patterns and generate personalized video ideas.
           </p>
-          <Button onClick={onConnect} size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
-            <Video className="mr-2 h-5 w-5" />
-            Connect YouTube Channel
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all">
+          <CardContent className="p-8">
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3 text-white">
+                <div className="flex-shrink-0 w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <span className="text-sm">1</span>
+                </div>
+                <p>Analyze your existing videos</p>
+              </div>
+              
+              <div className="flex items-center space-x-3 text-white">
+                <div className="flex-shrink-0 w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <span className="text-sm">2</span>
+                </div>
+                <p>Discover audience engagement patterns</p>
+              </div>
+              
+              <div className="flex items-center space-x-3 text-white">
+                <div className="flex-shrink-0 w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <span className="text-sm">3</span>
+                </div>
+                <p>Get AI-powered video ideas</p>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={onConnect} 
+              size="lg" 
+              className="w-full mt-8 bg-purple-600 hover:bg-purple-700 text-white transition-all group"
+            >
+              <Video className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform" />
+              Connect YouTube Channel
+            </Button>
+            
+            <p className="text-center text-gray-500 text-sm mt-4">
+              We only access your public video data
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -104,7 +143,6 @@ function SyncingProgress({ channelName }: { channelName: string }) {
         const data = await res.json();
         setProgress(data);
 
-        // If completed, refresh the page to show dashboard
         if (data.status === 'completed') {
           setTimeout(() => {
             router.refresh();
@@ -115,7 +153,6 @@ function SyncingProgress({ channelName }: { channelName: string }) {
       }
     };
 
-    // Poll every 2 seconds
     pollProgress();
     const interval = setInterval(pollProgress, 2000);
 
@@ -127,52 +164,91 @@ function SyncingProgress({ channelName }: { channelName: string }) {
     : 0;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] pt-24
- bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full bg-white/10 backdrop-blur-md border-white/20">
-        <CardContent className="pt-6 text-center">
-          <div className="animate-spin h-16 w-16 border-4 border-purple-400 border-t-transparent rounded-full mx-auto mb-6"></div>
-          <h2 className="text-2xl font-bold text-white mb-2">Analyzing {channelName}...</h2>
-
-          {progress?.status === 'completed' ? (
-            <div className="mb-4">
-              <p className="text-green-400 text-xl mb-2">✓ Analysis Complete!</p>
-              <p className="text-gray-300">Redirecting to dashboard...</p>
-            </div>
-          ) : progress?.totalVideos > 0 ? (
-            <div className="mb-4">
-              <p className="text-purple-300 text-xl mb-2">
-                {progress.processedVideos} of {progress.totalVideos} videos analyzed
-              </p>
-              <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
-                <div
-                  className="bg-purple-500 h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="h-20" />
+      <div className="relative z-10 max-w-lg w-full">
+        <Card className="bg-zinc-900 border-zinc-800">
+          <CardContent className="p-8">
+            <div className="text-center">
+              <div className="relative inline-block mb-6">
+                <div className="w-24 h-24 border-4 border-zinc-800 rounded-full"></div>
+                <div className="absolute top-0 left-0 w-24 h-24 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                <Brain className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-white" />
               </div>
-              <p className="text-gray-300 text-sm truncate max-w-md mx-auto">
-                Currently analyzing: {progress.currentVideo}
-              </p>
+              
+              <h2 className="text-2xl font-bold text-white mb-2">Analyzing Your Channel</h2>
+              <p className="text-gray-400 mb-6">{channelName}</p>
+              
+              {progress?.status === 'completed' ? (
+                <div className="space-y-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-zinc-800 rounded-full border border-zinc-700">
+                    <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <p className="text-white">Redirecting to dashboard...</p>
+                </div>
+              ) : progress?.totalVideos > 0 ? (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>Progress</span>
+                      <span>{progressPercentage}%</span>
+                    </div>
+                    <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-purple-600 rounded-full transition-all duration-500"
+                        style={{ width: `${progressPercentage}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-gray-500 truncate">
+                      Analyzing: {progress.currentVideo}
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold text-white">{progress.processedVideos}</div>
+                      <div className="text-xs text-gray-500">Processed</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold text-white">{progress.totalVideos}</div>
+                      <div className="text-xs text-gray-500">Total</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold text-white">{progress.totalVideos - progress.processedVideos}</div>
+                      <div className="text-xs text-gray-500">Remaining</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-400">Fetching your videos and comments...</p>
+              )}
+              
+              <div className="mt-8 space-y-3 text-left">
+                <div className={`flex items-center space-x-3 ${progress?.status === 'fetching' ? 'text-white' : 'text-gray-600'}`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center ${progress?.status !== 'fetching' ? 'bg-zinc-800' : 'bg-purple-600'}`}>
+                    {progress?.status !== 'fetching' ? '✓' : <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+                  </div>
+                  <span>Fetching videos</span>
+                </div>
+                
+                <div className={`flex items-center space-x-3 ${progress?.status === 'analyzing' ? 'text-white' : 'text-gray-600'}`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center ${progress?.status === 'completed' ? 'bg-purple-600' : 'bg-zinc-800'}`}>
+                    {progress?.status === 'completed' ? '✓' : progress?.status === 'analyzing' ? <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div> : ''}
+                  </div>
+                  <span>Analyzing content</span>
+                </div>
+                
+                <div className={`flex items-center space-x-3 ${progress?.status === 'completed' ? 'text-white' : 'text-gray-600'}`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center ${progress?.status === 'completed' ? 'bg-purple-600' : 'bg-zinc-800'}`}>
+                    {progress?.status === 'completed' ? '✓' : <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+                  </div>
+                  <span>Generating insights</span>
+                </div>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-300 mb-4">
-              Fetching your videos and comments...
-            </p>
-          )}
-
-          <div className="space-y-2 text-left max-w-md mx-auto text-gray-400 mt-6">
-            <p className={progress?.status === 'fetching' ? 'text-purple-300' : 'text-gray-500'}>
-              {progress?.status !== 'fetching' ? '✓' : '⏳'} Fetching videos
-            </p>
-            <p className={progress?.status === 'analyzing' ? 'text-purple-300' : 'text-gray-500'}>
-              {progress?.status === 'completed' ? '✓' : progress?.status === 'analyzing' ? '⏳' : ''} Analyzing content with AI
-            </p>
-            <p className={progress?.status === 'completed' ? 'text-green-400' : 'text-gray-500'}>
-              {progress?.status === 'completed' ? '✓' : '⏳'} Generating insights
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -209,62 +285,46 @@ function DashboardContent() {
   const handleRefreshData = async () => {
     try {
       setSyncing(true);
-      console.log("[DASHBOARD] Initiating sync...");
-
       const res = await fetch("/api/youtube/sync", { method: "POST" });
       const data = await res.json();
 
-      console.log("[DASHBOARD] Sync response:", data);
-
       if (data.error) {
-        console.error("[DASHBOARD] Sync error:", data.error);
         alert(`Sync error: ${data.error}`);
         setSyncing(false);
         return;
       }
 
       if (data.success) {
-        // Poll for sync completion
         let pollCount = 0;
-        const maxPolls = 100; // 100 * 3 seconds = 5 minutes max
+        const maxPolls = 100;
 
         const checkSync = setInterval(async () => {
           pollCount++;
-          console.log(`[DASHBOARD] Polling sync status (${pollCount}/${maxPolls})...`);
 
           try {
             const statusRes = await fetch("/api/youtube/sync");
             const statusData = await statusRes.json();
 
-            console.log("[DASHBOARD] Sync status:", statusData);
-
             if (statusData.syncStatus === "completed") {
-              console.log("[DASHBOARD] Sync completed! Refreshing...");
               clearInterval(checkSync);
               setSyncing(false);
-
-              // Refresh the page data
-              setTimeout(() => {
-                window.location.reload();
-              }, 1000);
+              setTimeout(() => window.location.reload(), 1000);
             } else if (statusData.syncStatus === "failed") {
-              console.error("[DASHBOARD] Sync failed!");
               clearInterval(checkSync);
               setSyncing(false);
               alert("Sync failed. Please try again.");
             } else if (pollCount >= maxPolls) {
-              console.error("[DASHBOARD] Sync timeout!");
               clearInterval(checkSync);
               setSyncing(false);
-              alert("Sync is taking longer than expected. It may still complete in the background.");
+              alert("Sync is taking longer than expected.");
             }
           } catch (error) {
-            console.error("[DASHBOARD] Error checking sync status:", error);
+            console.error("Error checking sync status:", error);
           }
         }, 3000);
       }
     } catch (error) {
-      console.error("[DASHBOARD] Error refreshing data:", error);
+      console.error("Error refreshing data:", error);
       setSyncing(false);
       alert("Failed to start sync. Please try again.");
     }
@@ -275,164 +335,207 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] pt-24
- bg-black p-6">
+    <div className="min-h-screen bg-black p-6">
+      <div className="h-20" />
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <div className="flex gap-3">
-            <Link href="/performance">
-            </Link>
-            <Button
-              onClick={handleRefreshData}
-              disabled={syncing}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {syncing ? (
-                <>
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                  Syncing...
-                </>
-              ) : (
-                <>
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Refresh Data
-                </>
-              )}
-            </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+            <p className="text-gray-400 mt-1">Analytics and insights for your channel</p>
           </div>
+          <Button
+            onClick={handleRefreshData}
+            disabled={syncing}
+            variant="outline"
+            className="border-zinc-700 text-white hover:bg-zinc-800 hover:border-zinc-600"
+          >
+            {syncing ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                Syncing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh Data
+              </>
+            )}
+          </Button>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
-            icon={<Video className="h-6 w-6 text-blue-600" />}
+            icon={<Video className="h-5 w-5 text-white" />}
             label="Total Videos"
             value={stats.totalVideos}
+            trend="+2.3%"
           />
           <StatCard
-            icon={<MessageSquare className="h-6 w-6 text-green-600" />}
+            icon={<MessageSquare className="h-5 w-5 text-white" />}
             label="Avg Engagement"
             value={`${(stats.avgEngagement * 100).toFixed(1)}%`}
+            trend="+1.8%"
           />
           <StatCard
-            icon={<TrendingUp className="h-6 w-6 text-purple-600" />}
+            icon={<TrendingUp className="h-5 w-5 text-white" />}
             label="Total Views"
             value={stats.totalViews.toLocaleString()}
+            trend="+12.4%"
           />
           <StatCard
-            icon={<Sparkles className="h-6 w-6 text-yellow-600" />}
+            icon={<Sparkles className="h-5 w-5 text-white" />}
             label="Ideas Generated"
             value={ideas?.ideas?.length || 0}
           />
         </div>
 
-        {/* Engagement Timeline Chart */}
-        <EngagementTimeline />
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all">
+            <CardHeader>
+              <CardTitle className="text-white">Engagement Timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EngagementTimeline />
+            </CardContent>
+          </Card>
 
-        {/* Performance Patterns CTA Card */}
-        <Card className="mb-8 bg-gradient-to-br from-purple-900/20 to-blue-900/20 border-purple-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-purple-600/20 p-3 rounded-lg">
-                  <BarChart3 className="h-8 w-8 text-purple-400" />
+          {/* Performance Patterns Card */}
+          <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all">
+            <CardContent className="p-6 h-full flex flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-zinc-800 rounded-lg mb-4">
+                  <BarChart3 className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Performance Patterns Analysis</h3>
-                  <p className="text-sm text-gray-300">
-                    See what's working best: formats, topics, tones, hooks, and optimal upload times
-                  </p>
-                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Performance Patterns</h3>
+                <p className="text-gray-400 text-sm">
+                  Analyze what formats, topics, and upload times work best for your audience.
+                </p>
               </div>
               <Link href="/performance">
-                <Button className="bg-purple-600 hover:bg-purple-700 gap-2">
-                  View Analysis
-                  <ArrowRight className="h-4 w-4" />
+  <GlareButton className="w-full">
+    View Analysis
+  </GlareButton>
+</Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Brand Collaboration Card */}
+        <Card className="mb-8 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all">
+  <CardContent className="p-6">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex items-center gap-4">
+        <div className="flex-shrink-0">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-zinc-800 rounded-lg">
+            <Briefcase className="h-6 w-6 text-white" />
+          </div>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-white mb-1">Brand Collaboration Signals</h3>
+          <p className="text-gray-400 text-sm">
+            Discover sponsorship opportunities based on your content style and audience.
+          </p>
+        </div>
+      </div>
+      <Link href="/brand-collaboration">
+  <GlareButton className="w-full">
+    View Opportunities
+  </GlareButton>
+</Link>
+    </div>
+  </CardContent>
+</Card>
+        {/* Insights and Ideas Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all">
+            <CardHeader>
+              <CardTitle className="text-white">Top Insights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {insights.insights.patterns.bestFormats.slice(0, 3).map((format: any, i: number) => (
+                <div 
+                  key={i} 
+                  className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600 transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
+                        <span className="text-sm text-white">{i + 1}</span>
+                      </div>
+                      <span className="font-medium text-white">{format.format} videos</span>
+                    </div>
+                    <span className="text-white font-semibold bg-zinc-700 px-3 py-1 rounded-full text-sm">
+                      {(format.avgEngagement * 100).toFixed(1)}% engagement
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-white">Latest Video Ideas</CardTitle>
+              <Link href="/ideas">
+                <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-zinc-700">
+                  View All
+                  <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Brand Collaboration Signals CTA Card */}
-        <Card className="mb-8 bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-green-600/20 p-3 rounded-lg">
-                  <Briefcase className="h-8 w-8 text-green-400" />
+            </CardHeader>
+            <CardContent>
+              {ideas?.ideas?.slice(0, 3).map((idea: any, i: number) => (
+                <div 
+                  key={i} 
+                  className="mb-4 p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600 transition-all"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white mb-2">
+                        {idea.title}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm">
+                        <span className="flex items-center text-gray-400">
+                          <div className="w-2 h-2 bg-purple-600 rounded-full mr-2"></div>
+                          {(idea.predictedEngagement * 100).toFixed(1)}% predicted
+                        </span>
+                        <span className="flex items-center text-gray-400">
+                          <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
+                          {(idea.confidence * 100).toFixed(0)}% confidence
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-gray-400" />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Brand Collaboration Signals</h3>
-                  <p className="text-sm text-gray-300">
-                    Discover industries, brands, and content styles that attract sponsorships
-                  </p>
-                </div>
-              </div>
-              <Link href="/brand-collaboration">
-                <Button className="bg-green-600 hover:bg-green-700 gap-2">
-                  View Opportunities
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top Insights */}
-        <Card className="mb-8 bg-white/5 border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white">🎯 Your Top Insights</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {insights.insights.patterns.bestFormats.slice(0, 3).map((format: any, i: number) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                <span className="font-medium text-white">{format.format} videos</span>
-                <span className="text-green-400 font-semibold">
-                  {(format.avgEngagement * 100).toFixed(1)}% engagement
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Latest Ideas */}
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white">💡 Latest Video Ideas</CardTitle>
-            <Link href="/ideas">
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">View All</Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {ideas?.ideas?.slice(0, 3).map((idea: any, i: number) => (
-              <div key={i} className="mb-4 p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
-                <h3 className="font-bold text-lg mb-2 text-white">{idea.title}</h3>
-                <div className="flex gap-4 text-sm text-gray-400">
-                  <span>📊 {(idea.predictedEngagement * 100).toFixed(1)}% predicted</span>
-                  <span>🎯 {(idea.confidence * 100).toFixed(0)}% confidence</span>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+function StatCard({ icon, label, value, trend }: { icon: React.ReactNode; label: string; value: string | number; trend?: string }) {
   return (
-    <Card className="bg-white/5 border-white/10">
-      <CardContent className="pt-6">
-        <div className="flex items-center gap-3">
-          {icon}
-          <div>
-            <p className="text-sm text-gray-400">{label}</p>
-            <p className="text-2xl font-bold text-white">{value}</p>
+    <Card className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-2">
+          <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center">
+            {icon}
           </div>
+          {trend && (
+            <span className="text-xs px-2 py-1 bg-zinc-800 text-white rounded-full">
+              {trend}
+            </span>
+          )}
         </div>
+        <p className="text-2xl font-bold text-white mb-1">{value}</p>
+        <p className="text-sm text-gray-400">{label}</p>
       </CardContent>
     </Card>
   );
@@ -440,17 +543,32 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function DashboardSkeleton() {
   return (
-    <div className="min-h-[calc(100vh-6rem)] pt-24
-bg-black p-6">
+    <div className="min-h-screen bg-black p-6">
+      <div className="h-20" />
       <div className="max-w-7xl mx-auto">
-        <Skeleton className="h-10 w-64 mb-8 bg-white/10" />
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Skeleton className="h-10 w-48 bg-zinc-800 mb-2" />
+            <Skeleton className="h-4 w-64 bg-zinc-800" />
+          </div>
+          <Skeleton className="h-10 w-32 bg-zinc-800" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 bg-white/10" />
+            <Skeleton key={i} className="h-32 bg-zinc-800 rounded-lg" />
           ))}
         </div>
-        <Skeleton className="h-64 mb-8 bg-white/10" />
-        <Skeleton className="h-96 bg-white/10" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Skeleton className="h-80 bg-zinc-800 rounded-lg" />
+          <Skeleton className="h-80 bg-zinc-800 rounded-lg" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-96 bg-zinc-800 rounded-lg" />
+          <Skeleton className="h-96 bg-zinc-800 rounded-lg" />
+        </div>
       </div>
     </div>
   );
