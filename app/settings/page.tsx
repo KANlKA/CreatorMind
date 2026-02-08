@@ -104,6 +104,7 @@ export default function SettingsPage() {
   const [sending, setSending] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [clientTimezone, setClientTimezone] = useState<string>("UTC");
   const [alertMessage, setAlertMessage] = useState<{
     type: "success" | "error" | "info";
     message: string;
@@ -124,7 +125,7 @@ export default function SettingsPage() {
       "Asia/Kolkata",
       "Asia/Singapore",
       "Australia/Sydney",
-      "Indian/Cocos",
+      "Asia/Calcutta",
     ];
   }, []);
 
@@ -137,6 +138,12 @@ export default function SettingsPage() {
     }
   };
 
+  // Auto-detect timezone on mount
+  useEffect(() => {
+    const tz = getClientTimezone();
+    setClientTimezone(tz);
+  }, []);
+
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
@@ -144,13 +151,13 @@ export default function SettingsPage() {
         setLoading(true);
         const [prefRes, historyRes, channelRes] = await Promise.all([
           fetch("/api/settings/preferences"),
-          fetch("/api/email/history?limit=10&page=1"),
+          fetch("/api/email/history?limit=5&page=1"),
           fetch("/api/youtube/connect"),
         ]);
 
         if (prefRes.ok) {
           const prefData = await prefRes.json();
-          const defaultTimezone = prefData.settings.timezone || getClientTimezone();
+          const defaultTimezone = prefData.settings.timezone || clientTimezone;
           setSettings({
             ...prefData.settings,
             timezone: defaultTimezone,
@@ -185,13 +192,13 @@ export default function SettingsPage() {
     };
 
     loadData();
-  }, []);
+  }, [clientTimezone]);
 
   // Load email history for different pages
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const res = await fetch(`/api/email/history?limit=10&page=${historyPage}`);
+        const res = await fetch(`/api/email/history?limit=5&page=${historyPage}`);
         if (res.ok) {
           const data = await res.json();
           setEmailHistory(data.emails);
@@ -212,15 +219,21 @@ export default function SettingsPage() {
   const handleSaveSettings = async () => {
     if (!editedSettings) return;
 
+    // Use client timezone if not manually changed
+    const settingsToSave = {
+      ...editedSettings,
+      timezone: editedSettings.timezone || clientTimezone,
+    };
+
     try {
       const res = await fetch("/api/settings/preferences", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settings: editedSettings }),
+        body: JSON.stringify({ settings: settingsToSave }),
       });
 
       if (res.ok) {
-        setSettings(editedSettings);
+        setSettings(settingsToSave);
         setIsEditMode(false);
         showAlert("Settings saved successfully!", "success");
       } else {
@@ -244,11 +257,12 @@ export default function SettingsPage() {
       if (data.success) {
         showAlert("Test email sent! Check your inbox.", "success");
         // Refresh email history
-        const historyRes = await fetch("/api/email/history?limit=10&page=1");
+        const historyRes = await fetch("/api/email/history?limit=5&page=1");
         if (historyRes.ok) {
           const historyData = await historyRes.json();
           setEmailHistory(historyData.emails);
           setTotalPages(historyData.pagination.pages);
+          setHistoryPage(1);
         }
       } else {
         showAlert(`Error: ${data.error}`, "error");
@@ -481,7 +495,9 @@ export default function SettingsPage() {
                     <div className="p-4 bg-slate-50 rounded-lg">
                       <p className="text-xs text-gray-600 uppercase font-medium">Frequency</p>
                       <p className="font-semibold mt-2 capitalize">
-                        {editedSettings.emailFrequency}
+                        {editedSettings.emailFrequency === "weekly" && "Every Week"}
+                        {editedSettings.emailFrequency === "biweekly" && "Every 2 Weeks"}
+                        {editedSettings.emailFrequency === "monthly" && "Every Month"}
                       </p>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-lg">
@@ -519,7 +535,7 @@ export default function SettingsPage() {
                     }
                     className="w-5 h-5 rounded accent-purple-600"
                   />
-                  <span className="font-semibold">Enable weekly email ideas</span>
+                  <span className="font-semibold">Enable email ideas</span>
                 </label>
 
                 {editedSettings.emailEnabled && (
@@ -539,15 +555,16 @@ export default function SettingsPage() {
                           }
                           className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:border-purple-500"
                         >
-                          <option value="weekly">Weekly</option>
-                          <option value="biweekly">Bi-Weekly</option>
-                          <option value="monthly">Monthly</option>
+                          <option value="weekly">Weekly (Every Week)</option>
+                          <option value="biweekly">Bi-Weekly (Every 2 Weeks)</option>
+                          <option value="monthly">Monthly (Every Month)</option>
                         </select>
+                        <p className="text-xs text-gray-500 mt-1">Email sent once per frequency</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-900 mb-2">
-                          Day of Week
+                          Day
                         </label>
                         <select
                           value={editedSettings.emailDay}
@@ -577,7 +594,7 @@ export default function SettingsPage() {
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-900 mb-2">
-                          Time of Day
+                          Time
                         </label>
                         <input
                           type="time"
@@ -597,7 +614,7 @@ export default function SettingsPage() {
                           Timezone
                         </label>
                         <select
-                          value={editedSettings.timezone}
+                          value={editedSettings.timezone || clientTimezone}
                           onChange={(e) =>
                             setEditedSettings({
                               ...editedSettings,
@@ -613,7 +630,7 @@ export default function SettingsPage() {
                           ))}
                         </select>
                         <p className="text-xs text-gray-500 mt-1">
-                          Auto-detected: <strong>{getClientTimezone()}</strong>
+                          Auto-detected: <strong>{clientTimezone}</strong>
                         </p>
                       </div>
 
@@ -653,7 +670,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Content Preferences - WITH DROPDOWNS */}
+        {/* Content Preferences - WITH CHECKBOXES */}
         <Card>
           <CardHeader>
             <CardTitle>🎯 Content Preferences</CardTitle>
@@ -714,7 +731,7 @@ export default function SettingsPage() {
               </div>
             ) : (
               <>
-                {/* Focus Areas Dropdown */}
+                {/* Focus Areas Checkboxes */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-3">
                     📌 Focus Areas
@@ -749,7 +766,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Avoid Topics Dropdown */}
+                {/* Avoid Topics Checkboxes */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-3">
                     🚫 Avoid Topics
@@ -784,7 +801,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Preferred Formats Dropdown */}
+                {/* Preferred Formats Checkboxes */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-3">
                     📹 Preferred Formats
@@ -842,7 +859,7 @@ export default function SettingsPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b">
+                      <tr className="border-b bg-gray-50">
                         <th className="text-left py-3 px-3 font-semibold">Status</th>
                         <th className="text-left py-3 px-3 font-semibold">Subject</th>
                         <th className="text-left py-3 px-3 font-semibold">Ideas</th>
@@ -862,15 +879,15 @@ export default function SettingsPage() {
                             <div>
                               <p className="font-medium">{email.subject}</p>
                               {email.failureReason && (
-                                <p className="text-xs text-red-600">
-                                  Failed: {email.failureReason}
+                                <p className="text-xs text-red-600 mt-1">
+                                  ⚠️ {email.failureReason}
                                 </p>
                               )}
                             </div>
                           </td>
-                          <td className="py-3 px-3">{email.ideaCount}</td>
+                          <td className="py-3 px-3 text-center font-semibold">{email.ideaCount}</td>
                           <td className="py-3 px-3">
-                            <p>{new Date(email.sentAt).toLocaleDateString()}</p>
+                            <p className="text-sm">{new Date(email.sentAt).toLocaleDateString()}</p>
                             <p className="text-xs text-gray-500">
                               {new Date(email.sentAt).toLocaleTimeString()}
                             </p>
@@ -883,18 +900,34 @@ export default function SettingsPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 mt-4">
+                  <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t">
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={historyPage === 1}
                       onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
                     >
-                      Previous
+                      ◀ Previous
                     </Button>
-                    <span className="flex items-center px-3 text-sm">
-                      Page {historyPage} of {totalPages}
-                    </span>
+                    
+                    <div className="flex gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                          key={page}
+                          variant={historyPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setHistoryPage(page)}
+                          className={`min-w-[40px] ${
+                            historyPage === page
+                              ? "bg-purple-600 hover:bg-purple-700"
+                              : ""
+                          }`}
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -903,10 +936,14 @@ export default function SettingsPage() {
                         setHistoryPage(Math.min(totalPages, historyPage + 1))
                       }
                     >
-                      Next
+                      Next ▶
                     </Button>
                   </div>
                 )}
+
+                <div className="text-center text-xs text-gray-500 mt-4">
+                  Page {historyPage} of {totalPages} • Showing 5 emails per page
+                </div>
               </div>
             )}
           </CardContent>
@@ -971,10 +1008,10 @@ export default function SettingsPage() {
               </>
             ) : (
               <>
-                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <p className="text-sm text-yellow-800 font-semibold flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4" />
-                    Sync Status: <Badge className={getSyncStatusColor(channelStatus.syncStatus)}>
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm text-gray-800 font-semibold flex items-center gap-2">
+                    Sync Status:
+                    <Badge className={getSyncStatusColor(channelStatus.syncStatus)}>
                       Disconnected
                     </Badge>
                   </p>
@@ -985,15 +1022,6 @@ export default function SettingsPage() {
                   className="w-full bg-purple-600 hover:bg-purple-700"
                 >
                   Connect YouTube Channel
-                </Button>
-
-                <Button
-                  onClick={handleResyncChannel}
-                  disabled={true}
-                  className="w-full bg-gray-400 text-gray-700 cursor-not-allowed opacity-60 hover:bg-gray-400"
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Re-sync Channel
                 </Button>
               </>
             )}

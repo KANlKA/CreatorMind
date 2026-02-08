@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/app/api/auth/[...nextauth]/route";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db/mongodb";
 import User from "@/models/User";
 import { fetchChannelData } from "@/lib/youtube/fetcher";
@@ -68,7 +67,7 @@ export async function POST(request: NextRequest) {
         youtubeAccessToken: accessToken,
         syncStatus: "pending",
       },
-      { new: true, upsert: true }
+      { new: true }
     );
 
     // Initiate background sync
@@ -102,19 +101,30 @@ export async function GET(request: NextRequest) {
 
     const user = await User.findOne({ email: session.user.email });
 
-    if (!user || !user.youtubeChannelId) {
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // If not connected, return disconnected status
+    if (!user.youtubeChannelId) {
       return NextResponse.json({
         connected: false,
+        syncStatus: "disconnected",
+        lastSyncedAt: null,
       });
     }
+
+    // Connected - return full status
+    console.log("User sync status:", user.syncStatus);
+    console.log("User last synced:", user.lastSyncedAt);
 
     return NextResponse.json({
       connected: true,
       channelId: user.youtubeChannelId,
       channelName: user.youtubeChannelName,
       subscriberCount: user.youtubeSubscriberCount,
-      syncStatus: user.syncStatus,
-      lastSyncedAt: user.lastSyncedAt,
+      syncStatus: user.syncStatus || "synced",
+      lastSyncedAt: user.lastSyncedAt || null,
     });
   } catch (error) {
     console.error("Error checking connection status:", error);

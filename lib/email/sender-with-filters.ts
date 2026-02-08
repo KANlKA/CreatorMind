@@ -70,7 +70,7 @@ export async function sendWeeklyEmailToUser(userId: string) {
     // Send email
     const result = await sendEmailViaMailjet({
       to: user.email,
-      subject: `Your Weekly Video Ideas - ${new Date().toLocaleDateString()}`,
+      subject: `Your ${user.emailSettings.emailFrequency} Video Ideas`,
       htmlContent: emailHtml,
     });
 

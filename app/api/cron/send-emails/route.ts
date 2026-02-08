@@ -30,9 +30,11 @@ export async function POST(request: NextRequest) {
     for (const user of users) {
       try {
         const emailSettings = user.emailSettings;
+        const emailFrequency = emailSettings.emailFrequency ?? "weekly";
+
         const userTimezone = emailSettings.timezone || "UTC";
 
-        // ✅ CORRECT: Convert server UTC time to user's local timezone
+        // Convert server UTC time to user's local timezone
         const userTimeStr = serverTime.toLocaleString("en-US", {
           timeZone: userTimezone,
         });
@@ -57,10 +59,11 @@ export async function POST(request: NextRequest) {
         console.log(`   Timezone: ${userTimezone}`);
         console.log(`   User's local time: ${userHours}:${String(userMinutes).padStart(2, "0")} (${dayOfWeek})`);
         console.log(`   Scheduled: ${emailSettings.day} at ${emailSettings.time}`);
+        console.log(`   Frequency: ${emailFrequency}`);
 
         // Check if it's the right day
         if (emailSettings.day !== dayOfWeek) {
-          console.log(`   ⏭️  Skipped: Wrong day`);
+          console.log(`   Skipped: Wrong day`);
           skippedCount++;
           continue;
         }
@@ -77,15 +80,52 @@ export async function POST(request: NextRequest) {
         console.log(`   Time diff: ${timeDiff} minutes`);
 
         if (timeDiff > 5) {
-          console.log(`   ⏭️  Skipped: Wrong time`);
+          console.log(`   Skipped: Wrong time`);
           skippedCount++;
           continue;
         }
 
-        console.log(`   ✅ Right day and time! Sending email...`);
+        // ✅ CRITICAL: Check if email already sent in this frequency period
+        console.log(`  Checking if email already sent in this ${emailSettings.emailFrequency}...`);
+
+        const lastEmailSent = await EmailLog.findOne({
+          userId: user._id,
+          status: { $in: ["delivered", "sent"] },
+        }).sort({ sentAt: -1 });
+
+        if (lastEmailSent) {
+          const lastSentTime = new Date(lastEmailSent.sentAt);
+          const daysSinceLastEmail = Math.floor(
+            (serverTime.getTime() - lastSentTime.getTime()) / (1000 * 60 * 60 * 24)
+          );
+
+          console.log(`   Last email sent: ${lastSentTime.toLocaleString()}`);
+          console.log(`   Days since last email: ${daysSinceLastEmail}`);
+
+          // Check frequency
+          if (emailFrequency === "weekly" && daysSinceLastEmail < 7) {
+            console.log(`   Skipped: Email already sent in the last 7 days`);
+            skippedCount++;
+            continue;
+          }
+
+          if (emailFrequency === "biweekly" && daysSinceLastEmail < 14) {
+            console.log(`   Skipped: Email already sent in the last 14 days`);
+            skippedCount++;
+            continue;
+          }
+
+          if (emailFrequency === "monthly" && daysSinceLastEmail < 30) {
+            console.log(`   Skipped: Email already sent in the last 30 days`);
+            skippedCount++;
+            continue;
+          }
+        }
+
+        console.log(`   Right day, time, and frequency! Sending email...`);
 
         // STEP 1: Generate ideas
-        console.log(`   🤖 Generating ${emailSettings.ideaCount} ideas...`);
+        console.log(`   Generating ${emailSettings.ideaCount} ideas...`);
 
         const preferences = emailSettings.preferences || {};
         let generatedIdea;
@@ -96,11 +136,11 @@ export async function POST(request: NextRequest) {
             emailSettings.ideaCount,
             preferences
           );
-          console.log(`   ✅ Generated ${generatedIdea.ideas.length} ideas`);
+          console.log(`   Generated ${generatedIdea.ideas.length} ideas`);
           generatedCount++;
 
           // STEP 2: Send email
-          console.log(`   📧 Sending email...`);
+          console.log(`   Sending email...`);
 
           const emailSent = await sendWeeklyEmailToUser(user._id.toString());
 
@@ -111,7 +151,7 @@ export async function POST(request: NextRequest) {
             // Log successful email
             await EmailLog.create({
               userId: user._id,
-              subject: `Your ${generatedIdea.ideas.length} Weekly Video Ideas`,
+              subject: `Your ${generatedIdea.ideas.length} Video Ideas - ${new Date().toLocaleDateString()}`,
               recipientEmail: user.email,
               status: "delivered",
               ideaCount: generatedIdea.ideas.length,
@@ -125,7 +165,7 @@ export async function POST(request: NextRequest) {
             // Log failed email
             await EmailLog.create({
               userId: user._id,
-              subject: `Your Weekly Video Ideas (Failed)`,
+              subject: `Your Video Ideas (Failed to Send)`,
               recipientEmail: user.email,
               status: "failed",
               ideaCount: emailSettings.ideaCount,
@@ -140,7 +180,7 @@ export async function POST(request: NextRequest) {
           // Log failed email due to generation error
           await EmailLog.create({
             userId: user._id,
-            subject: `Your Weekly Video Ideas (Generation Failed)`,
+            subject: `Your Video Ideas (Generation Failed)`,
             recipientEmail: user.email,
             status: "failed",
             ideaCount: 0,
@@ -149,7 +189,7 @@ export async function POST(request: NextRequest) {
           });
         }
       } catch (error) {
-        console.error(`❌ Error processing ${user.email}:`, (error as Error).message);
+        console.error(`❌ Error processing ${(error as any)?.user?.email}:`, (error as Error).message);
         errorCount++;
       }
     }

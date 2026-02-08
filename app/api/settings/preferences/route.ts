@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/app/api/auth/[...nextauth]/route";
-import connectDB from "@/lib/db/mongodb";
 import User from "@/models/User";
+import connectDB from "@/lib/db/mongodb";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,10 +19,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Return email settings with all fields
     const settings = {
       emailEnabled: user.emailSettings?.enabled || false,
       emailFrequency: user.emailSettings?.frequency || "weekly",
-      emailDay: user.emailSettings?.day || "monday",
+      emailDay: user.emailSettings?.day || "sunday",
       emailTime: user.emailSettings?.time || "09:00",
       timezone: user.emailSettings?.timezone || "UTC",
       ideaCount: user.emailSettings?.ideaCount || 5,
@@ -33,11 +34,14 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    return NextResponse.json({ settings });
+    return NextResponse.json({
+      success: true,
+      settings,
+    });
   } catch (error) {
     console.error("Error fetching settings:", error);
     return NextResponse.json(
-      { error: "Failed to load settings" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -51,20 +55,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { settings } = await request.json();
-
     await connectDB();
 
+    const { settings } = await request.json();
+
+    // Validate required fields
+    if (!settings) {
+      return NextResponse.json(
+        { error: "Settings are required" },
+        { status: 400 }
+      );
+    }
+
+    // Update user with email settings
     const user = await User.findOneAndUpdate(
       { email: session.user.email },
       {
         emailSettings: {
-          enabled: settings.emailEnabled,
-          frequency: settings.emailFrequency,
-          day: settings.emailDay,
-          time: settings.emailTime,
-          timezone: settings.timezone,
-          ideaCount: settings.ideaCount,
+          enabled: settings.emailEnabled === true,
+          frequency: settings.emailFrequency || "weekly",
+          day: settings.emailDay || "sunday",
+          time: settings.emailTime || "09:00",
+          timezone: settings.timezone || "UTC",
+          ideaCount: settings.ideaCount || 5,
           preferences: {
             focusAreas: settings.preferences?.focusAreas || [],
             avoidTopics: settings.preferences?.avoidTopics || [],
@@ -75,10 +88,15 @@ export async function POST(request: NextRequest) {
       { new: true }
     );
 
-    const updatedSettings = {
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Return saved settings
+    const savedSettings = {
       emailEnabled: user.emailSettings?.enabled || false,
       emailFrequency: user.emailSettings?.frequency || "weekly",
-      emailDay: user.emailSettings?.day || "monday",
+      emailDay: user.emailSettings?.day || "sunday",
       emailTime: user.emailSettings?.time || "09:00",
       timezone: user.emailSettings?.timezone || "UTC",
       ideaCount: user.emailSettings?.ideaCount || 5,
@@ -89,11 +107,18 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    return NextResponse.json({ settings: updatedSettings });
+    console.log("✅ Settings saved successfully");
+    console.log("Email Settings:", savedSettings);
+
+    return NextResponse.json({
+      success: true,
+      settings: savedSettings,
+      message: "Settings saved successfully",
+    });
   } catch (error) {
     console.error("Error saving settings:", error);
     return NextResponse.json(
-      { error: "Failed to save settings" },
+      { error: "Internal server error", message: (error as Error).message },
       { status: 500 }
     );
   }
