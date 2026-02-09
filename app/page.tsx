@@ -23,33 +23,34 @@ export default function HomePage() {
   const pathLengthFifth = useTransform(scrollYProgress, [0, 0.8], [0, 1.2]);
 
   return (
-    <div className="h-[400vh] bg-black w-full relative overflow-clip" ref={ref}>
-      <GoogleGeminiEffect
-        pathLengths={[
-          pathLengthFirst,
-          pathLengthSecond,
-          pathLengthThird,
-          pathLengthFourth,
-          pathLengthFifth,
-        ]}
-      />
+    <div className="bg-black w-full relative" ref={ref}>
+      {/* Google Gemini Effect - Fixed to hero section only */}
+      <div className="h-screen w-full fixed top-0 left-0 overflow-clip pointer-events-none">
+        <GoogleGeminiEffect
+          pathLengths={[
+            pathLengthFirst,
+            pathLengthSecond,
+            pathLengthThird,
+            pathLengthFourth,
+            pathLengthFifth,
+          ]}
+        />
+      </div>
 
-      <main className="absolute top-0 left-0 right-0 pt-28 pb-20 z-10 pointer-events-none">
+      <main className="relative pt-28 pb-20 z-10">
         <div className="container mx-auto px-4">
-          <div className="pointer-events-auto">
+          {/* Hero Section */}
+          <div className="min-h-screen flex items-center justify-center">
             <HeroSection />
           </div>
 
           {/* Animated Feature Cards Section */}
-          <div className="mt-[450px] max-w-6xl mx-auto pointer-events-auto">
+          <div className="mt-32 max-w-6xl mx-auto">
             <AnimatedFeatures />
           </div>
 
-          {/* MASSIVE SCROLL GAP BEFORE TESTIMONIALS */}
-          <div className="h-[40vh] w-full" />
-
           {/* Testimonials */}
-          <div className="max-w-2xl mx-auto pointer-events-auto">
+          <div className="mt-32 max-w-2xl mx-auto">
             <TestimonialsSection
               title="Trusted by creators worldwide"
               description=""
@@ -108,7 +109,8 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="mt-16 max-w-6xl mx-auto pointer-events-auto">
+          {/* CTA - Moved up */}
+          <div className="mt-8 max-w-6xl mx-auto">
             <CTA
               title="Ready to stop guessing?"
               description="Join creators who know exactly what their audience wants."
@@ -119,11 +121,11 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="mt-32 mb-16 max-w-6xl mx-auto pointer-events-auto">
+          <div className="mt-32 mb-16 max-w-6xl mx-auto">
             <ContactUs />
           </div>
 
-          <footer className="py-8 mt-20 border-t border-white/10 max-w-6xl mx-auto pointer-events-auto">
+          <footer className="py-8 mt-20 border-t border-white/10 max-w-6xl mx-auto">
             <div className="text-center text-gray-400">
               <p>&copy; 2025 CreatorMind. Built for creators, by creators.</p>
             </div>
