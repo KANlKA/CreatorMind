@@ -22,12 +22,12 @@ export function OverviewStats({
         value={totalVideos.toString()}
       />
       <StatCard
-        icon={<MessageSquare className="h-5 w-5 text-green-600" />}
+        icon={<MessageSquare className="bg-zinc-900 border-zinc-800" />}
         label="Avg Engagement"
         value={`${(avgEngagement * 100).toFixed(1)}%`}
       />
       <StatCard
-        icon={<TrendingUp className="h-5 w-5 text-purple-600" />}
+        icon={<TrendingUp className="bg-zinc-900 border-zinc-800"/>}
         label="Total Views"
         value={totalViews.toLocaleString()}
       />
@@ -50,7 +50,7 @@ function StatCard({
   value: string;
 }) {
   return (
-    <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-xl bg-gradient-to-br from-background to-muted/30">
+    <Card className="bg-zinc-900 border-zinc-800">
       <CardContent className="pt-6">
         <div className="flex items-center gap-4">
           

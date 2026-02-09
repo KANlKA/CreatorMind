@@ -9,7 +9,7 @@ import { generateIdeaGeoRecommendation } from "@/lib/content/idea-geo-recommenda
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, TrendingUp, Sparkles, FileText } from "lucide-react";
+import { ArrowLeft, TrendingUp, Sparkles } from "lucide-react";
 import GlareButton from "@/components/ui/GlareButton";
 import Link from "next/link";
 
@@ -55,18 +55,10 @@ export default function IdeaDetailPage() {
   }
 
   if (!idea) {
-    const contentPack =
-      idea.contentPack &&
-      (idea.contentPack.hashtags?.length ||
-        idea.contentPack.titleVariants?.length ||
-        idea.contentPack.script)
-        ? idea.contentPack
-        : generateHeuristicContent(idea);
-
     return (
-      <div className="min-h-screen bg-background pt-24 px-6 pb-6">
+      <div className="min-h-screen bg-black pt-24 px-6 pb-6">
         <div className="max-w-4xl mx-auto">
-          <p>Idea not found</p>
+          <p className="text-white">Idea not found</p>
           <Link href="/ideas">
             <Button variant="outline" className="mt-4">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -77,17 +69,8 @@ export default function IdeaDetailPage() {
       </div>
     );
   }
+
   const contentPack = generateHeuristicContent(idea);
-
-  <div className="flex items-center gap-3 mb-3">
-    <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary/10 font-semibold">
-      {idea.rank}
-    </div>
-
-    <Badge variant="outline" className="text-lg px-3 py-1">
-      Top Strategy
-    </Badge>
-  </div>;
   const confidenceColor = "text-white";
   const geoRecommendations = generateIdeaGeoRecommendation(idea);
 

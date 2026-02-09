@@ -23,10 +23,7 @@ import {
   Plane
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { Observer } from 'gsap/Observer';
 import { gsap } from 'gsap';
-
-gsap.registerPlugin(Observer);
 
 interface XConfig {
   canvas?: HTMLCanvasElement;

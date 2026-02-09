@@ -349,7 +349,7 @@ function IdeaCard({ idea, index }: { idea: any; index: number }) {
                 </div>
               ))}
               {idea.evidence.length > 2 && (
-                <p className="text-sm text-gray-500 font-medium text-white">
+                <p className="text-sm font-medium text-white">
                   +{idea.evidence.length - 2} more pieces of evidence
                 </p>
               )}

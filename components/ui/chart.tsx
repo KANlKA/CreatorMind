@@ -135,20 +135,23 @@ const ChartTooltipContent = React.forwardRef<
   ref
 ) => {
   const {
-    active,
-    payload,
     className,
     indicator = "dot",
     hideLabel = false,
     hideIndicator = false,
-    label,
-    labelFormatter,
-    labelClassName,
-    formatter,
-    color,
     nameKey,
     labelKey,
   } = props
+
+  // Extract tooltip-specific props that TypeScript can't infer from the intersection type
+  const tooltipProps = props as any
+  const active = tooltipProps.active
+  const payload = tooltipProps.payload
+  const label = tooltipProps.label
+  const labelFormatter = tooltipProps.labelFormatter
+  const labelClassName = tooltipProps.labelClassName
+  const formatter = tooltipProps.formatter
+  const color = tooltipProps.color
 
     const { config } = useChart()
 

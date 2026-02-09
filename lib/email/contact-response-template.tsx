@@ -103,7 +103,7 @@ export function ContactResponseEmail({
       <Body style={{ backgroundColor: "#f8fafc", margin: 0, padding: 0 }}>
         <Container style={container}>
           <Section style={headerSection}>
-            <Heading style={mainTitle}>Here’s the Information You Requested</Heading>
+            <Heading style={mainTitle}>Here's the Information You Requested</Heading>
             <Text style={subtitle}>Response to: {subject}</Text>
           </Section>
 

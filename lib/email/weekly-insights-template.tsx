@@ -83,7 +83,7 @@ export function WeeklyInsightsEmail({
                   {/* Why It Will Work */}
                   {idea.reasoning && (
                     <div style={reasoningBox as any}>
-                      <Text style={reasoningTitle}>💡 Why This Will Work</Text>
+                      <Text style={reasoningTitle}>Why This Will Work</Text>
                       {idea.reasoning.commentDemand && (
                         <div style={reasoningItem as any}>
                           <Text style={reasoningBullet}>•</Text>
@@ -115,7 +115,7 @@ export function WeeklyInsightsEmail({
                   {idea.suggestedStructure && (
                     <div style={structureBox as any}>
                       <Text style={structureTitle}>
-                        🎬 Suggested Structure
+                        Suggested Structure
                       </Text>
                       <div style={structureGrid as any}>
                         {idea.suggestedStructure.format && (

@@ -55,13 +55,13 @@ export function VideoCarousel() {
           transition={{ duration: 0.3 }}
         >
           <Link href={`/videos/${video.videoId}`}>
-            <Card className="group relative min-w-[260px] overflow-hidden transition-all hover:scale-105 cursor-pointer">
+            <Card className="group relative min-w-[260px] overflow-hidden transition-all hover:scale-105 cursor-pointer bg-zinc-900 border-zince-700 hover:border-zinc-300/50">
               <img
                 src={video.thumbnailUrl}
                 alt={video.title}
                 className="w-full h-40 object-cover"
               />
-              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+              <div className="absolute top-2 left-2 bg-white/70 text-black text-xs px-2 py-1 rounded">
                 {(
                   ((video.likes ?? 0) + (video.commentCount ?? 0)) /
                   Math.max(video.views, 1) *
@@ -82,9 +82,9 @@ export function VideoCarousel() {
               </div>
 
               <div className="p-3 space-y-1">
-                <p className="font-semibold line-clamp-2">{video.title}</p>
+                <p className="font-semibold line-clamp-2 text-white">{video.title}</p>
 
-                <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium text-white">
                   <span className="flex items-center gap-1">
                     👁 {video.views.toLocaleString()}
                   </span>

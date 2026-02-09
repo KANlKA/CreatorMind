@@ -22,19 +22,19 @@ export function AudiencePulse() {
     }
 
    return (
-    <Card className="mb-8">
-      <CardHeader>
-        <CardTitle>🤖 Audience Pulse</CardTitle>
+    <Card className="mb-8 bg-zinc-900 border-zinc-800">
+      <CardHeader className="text-white text-xl font-bold mb-3">
+        <CardTitle>Audience Pulse</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">
 
         {/* Intent Distribution */}
         <div>
-          <p className="font-semibold mb-2">Comment Intent Distribution</p>
+          <p className="font-semibold mb-2 text-zinc-400">Comment Intent Distribution</p>
           <div className="flex gap-3 flex-wrap">
             {data?.intents?.map(([label, value]: any, i: number) => (
-              <div key={i} className="px-3 py-2 bg-muted rounded-lg text-sm">
+              <div key={i} className="text-white text-muted-foreground">
                {label}: {value}
               </div>
             ))}
@@ -43,9 +43,9 @@ export function AudiencePulse() {
 
         {/* Top Requests */}
         <div>
-          <p className="font-semibold mb-2">🔥 Top Audience Requests</p>
+          <p className="font-semibold mb-2 text-zinc-400">Top Audience Requests</p>
            {data?.topTopics?.map(([topic, count]: any, i: number) => (
-            <p key={i} className="text-sm text-muted-foreground">
+            <p key={i} className="text-white text-muted-foreground">
               {topic} ({count})
             </p>
            ))}

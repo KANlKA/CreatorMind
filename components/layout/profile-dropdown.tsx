@@ -50,36 +50,46 @@ export function ProfileDropdown() {
         <Button
           variant="ghost"
           size="sm"
-          className="relative h-10 w-10 rounded-full p-0 hover:bg-white/10"
+          className="relative h-10 w-10 rounded-full p-0 hover:bg-zinc-800 transition-colors"
         >
-          <Avatar className="h-10 w-10 cursor-pointer border-2 border-white/20">
+          <Avatar className="h-10 w-10 cursor-pointer border-2 border-zinc-700">
             <AvatarImage src={session.user.image || ""} alt={session.user.name || ""} />
-            <AvatarFallback className="bg-purple-600 text-white font-semibold">
+            <AvatarFallback className="bg-zinc-700 text-white font-semibold">
               {userInitials}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 bg-black/90 backdrop-blur-lg border-white/20">
+      <DropdownMenuContent 
+        align="end" 
+        sideOffset={8}
+        className="w-64 bg-zinc-900 border border-zinc-700 shadow-xl rounded-lg p-2"
+      >
         {/* User Info */}
-        <div className="px-4 py-3">
-          <p className="text-sm font-semibold text-white">
+        <div className="px-3 py-3 mb-1">
+          <p className="text-sm font-semibold text-white truncate">
             {session.user.name || "Creator"}
           </p>
-          <p className="text-xs text-gray-400">{session.user.email}</p>
+          <p className="text-xs text-gray-400 truncate">{session.user.email}</p>
         </div>
 
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator className="bg-zinc-700 my-2" />
 
         {/* Settings */}
-        <DropdownMenuItem onClick={handleSettings} className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10">
-          <Settings className="mr-2 h-4 w-4" />
+        <DropdownMenuItem 
+          onClick={handleSettings} 
+          className="cursor-pointer text-white hover:bg-zinc-800 focus:bg-zinc-800 rounded-md px-3 py-2 transition-colors"
+        >
+          <Settings className="mr-3 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>
 
         {/* Contact Us */}
-        <DropdownMenuItem onClick={handleContact} className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10">
-          <MessageSquare className="mr-2 h-4 w-4" />
+        <DropdownMenuItem 
+          onClick={handleContact} 
+          className="cursor-pointer text-white hover:bg-zinc-800 focus:bg-zinc-800 rounded-md px-3 py-2 transition-colors"
+        >
+          <MessageSquare className="mr-3 h-4 w-4" />
           <span>Contact Us</span>
         </DropdownMenuItem>
 
@@ -89,9 +99,9 @@ export function ProfileDropdown() {
             router.push("/documentation");
             setIsOpen(false);
           }}
-          className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+          className="cursor-pointer text-white hover:bg-zinc-800 focus:bg-zinc-800 rounded-md px-3 py-2 transition-colors"
         >
-          <HelpCircle className="mr-2 h-4 w-4" />
+          <HelpCircle className="mr-3 h-4 w-4" />
           <span>Documentation</span>
         </DropdownMenuItem>
 
@@ -101,17 +111,20 @@ export function ProfileDropdown() {
             window.open("mailto:support@creatormind.ai", "_blank");
             setIsOpen(false);
           }}
-          className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+          className="cursor-pointer text-white hover:bg-zinc-800 focus:bg-zinc-800 rounded-md px-3 py-2 transition-colors"
         >
-          <Mail className="mr-2 h-4 w-4" />
+          <Mail className="mr-3 h-4 w-4" />
           <span>Email Support</span>
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator className="bg-zinc-700 my-2" />
 
         {/* Logout */}
-        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 hover:text-red-300">
-          <LogOut className="mr-2 h-4 w-4" />
+        <DropdownMenuItem 
+          onClick={handleLogout} 
+          className="cursor-pointer text-red-400 hover:bg-zinc-800 focus:bg-zinc-800 hover:text-red-300 rounded-md px-3 py-2 transition-colors"
+        >
+          <LogOut className="mr-3 h-4 w-4" />
           <span>Log Out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

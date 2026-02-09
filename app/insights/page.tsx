@@ -109,9 +109,6 @@ export default function InsightsPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/50">
-              <BarChart3 className="h-6 w-6 text-white" />
-            </div>
             <div>
               <h1 className="text-4xl font-bold text-white mb-1">Your Creator Insights</h1>
               <p className="text-gray-400">
@@ -122,7 +119,7 @@ export default function InsightsPage() {
           <Button
             onClick={handleRegenerate}
             disabled={regenerating}
-            className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white"
+            className="bg-zinc-900 hover:bg-zinc-700 border border-zinc-700 text-white"
           >
             {regenerating ? (
               <>
@@ -140,29 +137,29 @@ export default function InsightsPage() {
 
         {/* Overview Stats */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-green-950/30 to-green-900/20 border-green-900/50 hover:border-green-700/50 transition-all">
+          <Card className="bg-zinc-900 border-zinc-900">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-sm text-green-400 mb-2 font-medium">Average Engagement</p>
-                <p className="text-5xl font-bold text-green-500">
+                <p className="text-sm text-zinc-400 mb-2 font-medium">Average Engagement</p>
+                <p className="text-5xl font-bold text-white">
                   {(stats.avgEngagement * 100).toFixed(1)}%
                 </p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-blue-950/30 to-blue-900/20 border-blue-900/50 hover:border-blue-700/50 transition-all">
+          <Card className="bg-zinc-900 border-zinc-900">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-sm text-blue-400 mb-2 font-medium">Total Videos</p>
-                <p className="text-5xl font-bold text-blue-500">{stats.totalVideos}</p>
+                <p className="text-sm text-zinc-400 mb-2 font-medium">Total Videos</p>
+                <p className="text-5xl font-bold text-white">{stats.totalVideos}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-purple-950/30 to-purple-900/20 border-purple-900/50 hover:border-purple-700/50 transition-all">
+          <Card className="bg-zinc-900 border-zinc-900">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-sm text-purple-400 mb-2 font-medium">Total Views</p>
-                <p className="text-5xl font-bold text-purple-500">
+                <p className="text-sm text-zinc-400 mb-2 font-medium">Total Views</p>
+                <p className="text-5xl font-bold text-white">
                   {stats.totalViews.toLocaleString()}
                 </p>
               </div>
@@ -171,18 +168,16 @@ export default function InsightsPage() {
         </div>
 
         {/* Performance Patterns */}
-        <Card className="mb-8 bg-zinc-900 border-zinc-800">
+        <Card className="mb-8 bg-zinc-900 border-zinc-900">
           <CardHeader className="border-b border-zinc-800">
             <CardTitle className="flex items-center gap-2 text-white text-2xl">
-              <TrendingUp className="h-6 w-6 text-green-500" />
               What's Working Best
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-8 pt-6">
             {/* Best Formats */}
             <div>
-              <h3 className="font-bold mb-4 text-xl text-gray-200 flex items-center gap-2">
-                <span className="text-2xl">🎬</span>
+              <h3 className="font-bold mb-4 text-xl text-white flex items-center gap-2">
                 Best Formats
               </h3>
               <div className="space-y-3">
@@ -190,21 +185,20 @@ export default function InsightsPage() {
                   (format: any, i: number) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between p-5 bg-green-950/20 rounded-xl border-2 border-green-900/30 hover:border-green-700/50 transition-all"
-                    >
+                      className="flex items-center justify-between p-5 bg-zinc-900/20 rounded-xl border-2 border-zinc-700/30 hover:border-zinc-300/50 transition-all">
                       <div className="flex items-center gap-4">
-                        <Badge variant="outline" className="bg-green-600 text-white border-0 text-lg px-3 py-1">
+                        <Badge variant="outline" className="bg-zinc-500 text-white border-0 text-lg px-3 py-1">
                           #{i + 1}
                         </Badge>
                         <div>
-                          <p className="font-medium capitalize">{format.format}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="font-medium capitalize text-white">{format.format}</p>
+                          <p className="text-sm text-zinc-300">
                             {format.count} videos
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-3xl font-bold text-green-500">
+                        <p className="text-3xl font-bold text-white">
                           {(format.avgEngagement * 100).toFixed(1)}%
                         </p>
                         <p className="text-xs text-gray-500 uppercase tracking-wide">avg engagement</p>
@@ -217,27 +211,27 @@ export default function InsightsPage() {
 
             {/* Best Topics */}
             <div>
-              <h3 className="font-semibold mb-3 text-lg">Best Topics</h3>
+              <h3 className="font-bold mb-4 text-xl text-white flex items-center gap-2">Best Topics</h3>
               <div className="space-y-2">
                 {creatorInsights.patterns.bestTopics.slice(0, 5).map(
                   (topic: any, i: number) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between p-5 bg-blue-950/20 rounded-xl border-2 border-blue-900/30 hover:border-blue-700/50 transition-all"
+                      className="flex items-center justify-between p-5 bg-zinc-900/20 rounded-xl border-2 border-zinc-700/30 hover:border-zinc-300/50 transition-all"
                     >
                       <div className="flex items-center gap-4">
-                        <Badge variant="outline" className="bg-blue-600 text-white border-0 text-lg px-3 py-1">
+                        <Badge variant="outline" className="bg-zinc-500 text-white border-0 text-lg px-3 py-1">
                           #{i + 1}
                         </Badge>
                         <div>
                           <p className="font-semibold text-white text-lg">{topic.topic}</p>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-zinc-300">
                             {topic.videos} videos
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-3xl font-bold text-blue-500">
+                        <p className="text-3xl font-bold text-white">
                           {(topic.avgEngagement * 100).toFixed(1)}%
                         </p>
                         <p className="text-xs text-gray-500 uppercase tracking-wide">avg engagement</p>
@@ -249,8 +243,7 @@ export default function InsightsPage() {
 
             {/* Best Tones */}
             <div>
-              <h3 className="font-bold mb-4 text-xl text-gray-200 flex items-center gap-2">
-                <span className="text-2xl">🎭</span>
+              <h3 className="font-bold mb-4 text-xl text-white flex items-center gap-2">
                 Best Tones
               </h3>
               <div className="grid md:grid-cols-3 gap-4">
@@ -258,10 +251,10 @@ export default function InsightsPage() {
                   (tone: any, i: number) => (
                     <div
                       key={i}
-                      className="p-6 bg-purple-950/20 rounded-xl border-2 border-purple-900/30 hover:border-purple-700/50 text-center transition-all"
+                      className="p-6 bg-zinc-900/20 rounded-xl border-2 border-zinc-700/30 hover:border-zinc-300/50 text-center transition-all"
                     >
-                      <p className="font-semibold capitalize mb-3 text-white text-lg">{tone.tone}</p>
-                      <p className="text-4xl font-bold text-purple-500">
+                      <p className="font-semibold capitalize mb-3 text-zinc-400 text-lg">{tone.tone}</p>
+                      <p className="text-4xl font-bold text-white">
                         {(tone.avgEngagement * 100).toFixed(1)}%
                       </p>
                     </div>
@@ -272,17 +265,16 @@ export default function InsightsPage() {
 
             {/* Best Upload Time */}
             <div>
-              <h3 className="font-bold mb-4 text-xl text-gray-200 flex items-center gap-2">
-                <Clock className="h-6 w-6 text-yellow-500" />
+              <h3 className="font-bold mb-4 text-xl text-white flex items-center gap-2">
                 Best Upload Time
               </h3>
-              <div className="p-6 bg-yellow-50 rounded-lg border border-yellow-200 text-center">
-                <p className="text-lg mb-2">Your videos perform best when uploaded on:</p>
-                <p className="text-3xl font-bold text-yellow-700 capitalize">
+              <div className="p-6 bg-zinc-900 rounded-lg border border-zinc-700 text-center">
+                <p className="text-lg mb-2 text-zinc-400">Your videos perform best when uploaded on:</p>
+                <p className="text-3xl font-bold text-zinc-300 capitalize">
                   {creatorInsights.patterns.bestUploadTimes.dayOfWeek}s
                 </p>
-                <p className="text-2xl text-yellow-400 mt-2">
-                  at {creatorInsights.patterns.bestUploadTimes.timeOfDay}
+                <p className="text-2xl text-zinc-400 mt-2">
+                  at <span className="text-2xl font-semibold text-zinc-300 capitalize">{creatorInsights.patterns.bestUploadTimes.timeOfDay}</span>
                 </p>
               </div>
             </div>
@@ -290,17 +282,17 @@ export default function InsightsPage() {
         </Card>
 
         {/* Geography Opportunities */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Audience Geography Opportunities</CardTitle>
+        <Card className="mb-12 bg-zinc-900 border-zinc-900">
+          <CardHeader >
+            <CardTitle className="flex items-center gap-2 text-white text-2xl">Audience Geography Opportunities</CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-3">
+          <CardContent className="mb-8 bg-zinc-900 border-zinc-400 ">
             {geoRecommendations.map((geo: any, i: number) => (
-              <div key={i} className="p-4 bg-slate-50 rounded-lg border">
-                <p className="font-semibold">{geo.country}</p>
-                <p className="text-sm text-gray-600">{geo.reason}</p>
-                <p className="text-xs text-gray-400">
+              <div key={i} className="p-4 mb-4 bg-zinc-900 rounded-lg border-zinc-200">
+                <p className="font-semibold text-lg text-white">{geo.country}</p>
+                <p className="text-sm text-zinc-200">{geo.reason}</p>
+                <p className="text-xs text-zinc-400">
                   Confidence: {(geo.confidence * 100).toFixed(0)}%
                 </p>
               </div>
@@ -309,17 +301,16 @@ export default function InsightsPage() {
         </Card>
 
         {/* Audience Intelligence */}
-        <Card className="mb-8 bg-zinc-900 border-zinc-800">
+        <Card className="mb-8 bg-zinc-900 border-zinc-900">
           <CardHeader className="border-b border-zinc-800">
             <CardTitle className="flex items-center gap-2 text-white text-2xl">
-              <Target className="h-6 w-6 text-blue-500" />
               Your Audience Profile
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-6 bg-blue-950/20 rounded-xl border-2 border-blue-900/30">
-                <h3 className="font-semibold mb-3 text-blue-400">Primary Intent</h3>
+              <div className="p-6 bg-zinc-900 rounded-xl border-2 border-zinc-700">
+                <h3 className="font-semibold mb-3 text-zinc-400">Primary Intent</h3>
                 <p className="text-3xl font-bold capitalize text-white">
                   {creatorInsights.audience.primaryIntent}
                 </p>
@@ -327,8 +318,8 @@ export default function InsightsPage() {
                   What your audience comes for
                 </p>
               </div>
-              <div className="p-6 bg-green-950/20 rounded-xl border-2 border-green-900/30">
-                <h3 className="font-semibold mb-3 text-green-400">Skill Level</h3>
+              <div className="p-6 bg-zinc-900 rounded-xl border-2 border-zinc-700">
+                <h3 className="font-semibold mb-3 text-zinc-400">Skill Level</h3>
                 <p className="text-3xl font-bold capitalize text-white">
                   {creatorInsights.audience.skillLevel}
                 </p>
@@ -336,8 +327,8 @@ export default function InsightsPage() {
                   Your audience's expertise level
                 </p>
               </div>
-              <div className="p-6 bg-purple-950/20 rounded-xl border-2 border-purple-900/30">
-                <h3 className="font-semibold mb-3 text-purple-400">Engagement Quality</h3>
+              <div className="p-6 bg-zinc-900 rounded-xl border-2 border-zinc-700">
+                <h3 className="font-semibold mb-3 text-zinc-400">Engagement Quality</h3>
                 <p className="text-3xl font-bold capitalize text-white">
                   {creatorInsights.audience.engagementQuality}
                 </p>
@@ -363,7 +354,7 @@ export default function InsightsPage() {
         {/* Video Carousel */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
-            <span className="text-2xl">🎥</span>
+            <span className="text-2xl"></span>
             Your Videos
           </h2>
           <VideoCarousel />
@@ -373,18 +364,16 @@ export default function InsightsPage() {
         <AudiencePulse />
 
         {/* Comment Intelligence */}
-        <Card className="mt-8 bg-zinc-900 border-zinc-800">
+        <Card className="bg-zinc-900 border-zinc-800">
           <CardHeader className="border-b border-zinc-800">
             <CardTitle className="flex items-center gap-2 text-white text-2xl">
-              <MessageSquare className="h-6 w-6 text-orange-500" />
               What Your Audience Wants
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-8 pt-6">
             {/* Top Requests */}
             <div>
-              <h3 className="font-bold mb-4 text-xl text-gray-200 flex items-center gap-2">
-                <span className="text-2xl">🔥</span>
+              <h3 className="font-bold mb-4 text-xl text-white flex items-center gap-2">
                 Top Requests
               </h3>
               <div className="space-y-3">
@@ -393,7 +382,7 @@ export default function InsightsPage() {
                   .map((request: any, i: number) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between p-5 bg-orange-950/20 rounded-xl border-2 border-orange-900/30 hover:border-orange-700/50 transition-all"
+                      className="mb-8 bg-zinc-900 border-zinc-800"
                     >
                       <div>
                         <p className="font-semibold text-white text-lg">{request.theme}</p>
@@ -401,7 +390,7 @@ export default function InsightsPage() {
                           Mentioned in {request.videoIds.length} videos
                         </p>
                       </div>
-                      <Badge className="bg-orange-600 text-white text-base px-4 py-2">
+                      <Badge className="mb-8 bg-zinc-900 border-zinc-800">
                         {request.mentions} mentions
                       </Badge>
                     </div>
@@ -412,16 +401,15 @@ export default function InsightsPage() {
             {/* Confusion Areas */}
             {creatorInsights.commentThemes.confusionAreas.length > 0 && (
               <div>
-                <h3 className="font-semibold mb-3 text-lg">❓ Confusion Areas</h3>
+                <h3 className="text-lg font-semibold mb-3 text-white">Confusion Areas</h3>
                 <div className="space-y-2">
                   {creatorInsights.commentThemes.confusionAreas.map(
                     (area: any, i: number) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-5 bg-red-950/20 rounded-xl border-2 border-red-900/30 hover:border-red-700/50 transition-all"
-                      >
-                        <p className="font-semibold text-white text-lg">{area.area}</p>
-                        <Badge className="bg-red-600 text-white text-base px-4 py-2">
+                        className="flex items-center justify-between p-5 rounded-xl border-2 mb-8 bg-zinc-900 border-zinc-700">
+                        <p className="font-semibold text-white">{area.area}</p>
+                        <Badge className="bg-zinc-500 text-white text-base px-4 py-2">
                           {area.mentions} confused viewers
                         </Badge>
                       </div>
@@ -434,16 +422,16 @@ export default function InsightsPage() {
             {/* Praise Patterns */}
             {creatorInsights.commentThemes.praisePatterns.length > 0 && (
               <div>
-                <h3 className="font-semibold mb-3 text-lg">💚 What They Love</h3>
+                <h3 className="font-semibold mb-3 text-lg">What They Love</h3>
                 <div className="space-y-2">
                   {creatorInsights.commentThemes.praisePatterns.map(
                     (pattern: any, i: number) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-5 bg-green-950/20 rounded-xl border-2 border-green-900/30 hover:border-green-700/50 transition-all"
+                        className="flex items-center justify-between p-5 bg-zinc-900 rounded-xl border-2 border-zinc-700"
                       >
-                        <p className="font-semibold text-white text-lg">{pattern.pattern}</p>
-                        <Badge className="bg-green-600 text-white text-base px-4 py-2">
+                        <p className="font-medium text-white text-lg">{pattern.pattern}</p>
+                        <Badge className="bg-zinc-500 text-white text-base px-4 py-2">
                           {pattern.mentions} praises
                         </Badge>
                       </div>

@@ -5,8 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ThumbsUp, Eye, MessageSquare, TrendingUp, Brain, Tag, BarChart3, Mic, Sparkles, Users, Target, Calendar, Clock, Lightbulb } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, ThumbsUp, Eye, MessageSquare, TrendingUp, Brain, Tag, BarChart3, Mic, Sparkles, Users, Target, Calendar, Clock, Lightbulb,Youtube } from "lucide-react";
 
 interface VideoAnalysis {
   topic: string;
@@ -47,6 +46,7 @@ interface VideoData {
 
 export default function VideoDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const videoId = params.videoId as string;
   const [data, setData] = useState<VideoData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,19 +104,23 @@ export default function VideoDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Back Button */}
-        <Link href="/insights">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-        </Link>
+    <div className="min-h-screen bg-black">
+      {/* Navbar space */}
+      <div className="h-20" />
 
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          className="mb-6 bg-zinc-900 border-zinc-700 text-white hover:bg-zinc-800"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
         {/* Video Header */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
+        <Card className="mb-6 border-zinc-900">
+          <CardContent className="pt-6 bg-zinc-900 border-zinc-900">
             <div className="flex gap-6">
               {video.thumbnailUrl && (
                 <img
@@ -126,9 +130,9 @@ export default function VideoDetailPage() {
                 />
               )}
               <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-2">{video.title}</h1>
-                <p className="text-gray-600 mb-4 line-clamp-2">{video.description}</p>
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                <h1 className="text-2xl font-bold mb-2 text-white">{video.title}</h1>
+                <p className="text-zinc-400 mb-4 line-clamp-2">{video.description}</p>
+                <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
                   <div className="flex items-center gap-1">
                     <Eye className="h-4 w-4" />
                     {video.views.toLocaleString()} views
@@ -163,25 +167,23 @@ export default function VideoDetailPage() {
 
         {/* AI-Powered Video Intelligence */}
         {video.analysis && (
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200 mb-6">
+          <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-700 mb-6">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Brain className="h-6 w-6 text-purple-600" />
               AI-Powered Video Intelligence
             </h3>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 bg-zinc-900 p-4 rounded-lg border border-zinc-700">
               {/* Topic & Subtopics */}
               <IntelligenceCard
-                icon={<Tag className="h-5 w-5 text-blue-600" />}
                 title="Topic & Subtopics"
                 primary={video.analysis.topic}
                 items={video.analysis.subtopics}
                 color="blue"
+                containerClassName="bg-zinc-900 border border-zinc-700"
               />
 
               {/* Content Format */}
               <IntelligenceCard
-                icon={<BarChart3 className="h-5 w-5 text-purple-600" />}
                 title="Content Format"
                 primary={video.analysis.format}
                 description={video.analysis.structure ? `Structured as: ${video.analysis.structure}` : undefined}
@@ -190,7 +192,6 @@ export default function VideoDetailPage() {
 
               {/* Tone */}
               <IntelligenceCard
-                icon={<Mic className="h-5 w-5 text-green-600" />}
                 title="Tone"
                 primary={video.analysis.tone}
                 description="The emotional approach of the content"
@@ -199,7 +200,6 @@ export default function VideoDetailPage() {
 
               {/* Hook Type */}
               <IntelligenceCard
-                icon={<Sparkles className="h-5 w-5 text-yellow-600" />}
                 title="Hook Type"
                 primary={video.analysis.hookType.replace("-", " ")}
                 description="What grabs viewer attention"
@@ -208,7 +208,6 @@ export default function VideoDetailPage() {
 
               {/* Audience Intent */}
               <IntelligenceCard
-                icon={<Users className="h-5 w-5 text-pink-600" />}
                 title="Audience Intent"
                 primary={video.analysis.audienceIntent}
                 description="Why viewers watch this content"
@@ -217,7 +216,6 @@ export default function VideoDetailPage() {
 
               {/* Complexity Level */}
               <IntelligenceCard
-                icon={<Target className="h-5 w-5 text-orange-600" />}
                 title="Complexity Level"
                 primary={video.analysis.complexity}
                 description="Content difficulty level"
@@ -230,9 +228,10 @@ export default function VideoDetailPage() {
               href={`https://www.youtube.com/watch?v=${video.videoId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full bg-red-600 hover:bg-red-700 text-white text-center py-3 rounded-lg font-semibold transition-colors mt-6"
+              className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition-colors mt-6"
             >
-              Watch on YouTube →
+              <Youtube className="h-5 w-5" />
+              Watch on YouTube
             </a>
           </div>
         )}
@@ -240,15 +239,15 @@ export default function VideoDetailPage() {
         {/* Comment Analysis Overview */}
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           {/* Sentiment Distribution */}
-          <Card>
+          <Card className="mb-6 bg-zinc-900 border-zinc-900">
             <CardHeader>
-              <CardTitle>Sentiment Analysis</CardTitle>
+              <CardTitle className="text-white">Sentiment Analysis</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {Object.entries(analysis.sentiment).map(([sentiment, count]) => (
                   <div key={sentiment} className="flex items-center justify-between">
-                    <span className="capitalize">{sentiment}</span>
+                    <span className="capitalize text-zinc-300">{sentiment}</span>
                     <div className="flex items-center gap-2">
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div
@@ -264,7 +263,7 @@ export default function VideoDetailPage() {
                           }}
                         ></div>
                       </div>
-                      <span className="text-sm font-semibold w-8">{count}</span>
+                      <span className="text-sm font-semibold w-8 text-zinc-300">{count}</span>
                     </div>
                   </div>
                 ))}
@@ -273,16 +272,16 @@ export default function VideoDetailPage() {
           </Card>
 
           {/* Intent Distribution */}
-          <Card>
+          <Card className="mb-6 bg-zinc-900 border-zinc-900">
             <CardHeader>
-              <CardTitle>Comment Intents</CardTitle>
+              <CardTitle className="text-white">Comment Intents</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {analysis.intents.slice(0, 5).map(([intent, count]: [string, number]) => (
                   <div key={intent} className="flex items-center justify-between">
-                    <span className="capitalize">{intent}</span>
-                    <Badge variant="outline">{count}</Badge>
+                    <span className="capitalize text-zinc-300">{intent}</span>
+                    <Badge variant="outline" className="text-zinc-300">{count}</Badge>
                   </div>
                 ))}
               </div>
@@ -290,14 +289,14 @@ export default function VideoDetailPage() {
           </Card>
 
           {/* Top Topics */}
-          <Card>
+          <Card className="mb-6 bg-zinc-900 border-zinc-900">
             <CardHeader>
-              <CardTitle>Top Topics</CardTitle>
+              <CardTitle className="text-white">Top Topics</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {analysis.topTopics.map(([topic, count]: [string, number]) => (
-                  <Badge key={topic} variant="secondary">
+                  <Badge key={topic} variant="secondary" className="text-zinc-300">
                     {topic} ({count})
                   </Badge>
                 ))}
@@ -307,21 +306,21 @@ export default function VideoDetailPage() {
         </div>
 
         {/* Comments List */}
-        <Card>
+        <Card className="mb-6 bg-zinc-900 border-zinc-900">
           <CardHeader>
-            <CardTitle>All Comments ({analysis.totalComments})</CardTitle>
+            <CardTitle className="text-white">All Comments ({analysis.totalComments})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {comments.map((comment: any) => (
                 <div
                   key={comment.commentId}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border-2 border-zinc-700 rounded-lg p-4"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="font-semibold">{comment.authorName}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-semibold text-white">{comment.authorName}</p>
+                      <p className="text-sm text-zinc-400">
                         {new Date(comment.publishedAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -340,7 +339,7 @@ export default function VideoDetailPage() {
                       </Badge>
                     </div>
                   </div>
-                  <p className="text-gray-700 mb-2">{comment.text}</p>
+                  <p className="text-zinc-300 mb-2">{comment.text}</p>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-1">
                       {comment.topics.map((topic: string) => (
@@ -371,28 +370,30 @@ function IntelligenceCard({
   items,
   description,
   color,
+  containerClassName,
 }: {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   title: string;
   primary: string;
   items?: string[];
   description?: string;
   color: string;
+  containerClassName?: string;
 }) {
   const colorClasses = {
-    blue: "bg-blue-100 text-blue-800 border-blue-200",
-    purple: "bg-purple-100 text-purple-800 border-purple-200",
-    green: "bg-green-100 text-green-800 border-green-200",
-    yellow: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    pink: "bg-pink-100 text-pink-800 border-pink-200",
-    orange: "bg-orange-100 text-orange-800 border-orange-200",
+    blue: "bg-zinc-800 text-zinc-200 border-zinc-500",
+    purple: "bg-zinc-800 text-zinc-200 border-zinc-500",
+    green: "bg-zinc-800 text-zinc-200 border-zinc-500",
+    yellow: "bg-zinc-800 text-zinc-200 border-zinc-500",
+    pink: "bg-zinc-800 text-zinc-200 border-zinc-500",
+    orange: "bg-zinc-800 text-zinc-200 border-zinc-500",
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 border shadow-sm">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="bg-deepBlack rounded-lg p-4 border-zinc-700">
+      <div className="flex items-center gap-2 mb-3 ">
         {icon}
-        <h4 className="font-semibold text-sm text-gray-700">{title}</h4>
+        <h4 className="font-semibold text-sm text-zinc-300">{title}</h4>
       </div>
 
       <div className="mb-2">
@@ -406,7 +407,7 @@ function IntelligenceCard({
           {items.map((item, i) => (
             <span
               key={i}
-              className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+              className="text-xs bg-zinc-400 text-black px-2 py-1 rounded-full"
             >
               {item}
             </span>
@@ -415,7 +416,7 @@ function IntelligenceCard({
       )}
 
       {description && (
-        <p className="text-xs text-gray-500 mt-2">{description}</p>
+        <p className="text-xs text-zinc-300 mt-2">{description}</p>
       )}
     </div>
   );

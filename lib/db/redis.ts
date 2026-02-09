@@ -19,7 +19,7 @@ export async function cacheSet(key: string, value: any, expirationSeconds?: numb
 export async function cacheGet<T>(key: string): Promise<T | null> {
   const data = await redis.get(key);
   if (!data) return null;
-  return typeof data === 'string' ? JSON.parse(data) : data;
+  return typeof data === 'string' ? JSON.parse(data) : (data as T);
 }
 
 export async function cacheDel(key: string) {
