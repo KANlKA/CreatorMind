@@ -28,7 +28,7 @@ export function AnimatedFeatures() {
       </div>
 
       {/* Right: Animated Cards */}
-      <div style={{ height: '600px', position: 'relative' }}>
+      <div style={{ height: '600px', position: 'relative', marginTop: '-10px' }}>
         <CardSwap
           cardDistance={60}
           verticalDistance={70}

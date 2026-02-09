@@ -45,7 +45,7 @@ export default function HomePage() {
           </div>
 
           {/* Animated Feature Cards Section */}
-          <div className="mt-32 max-w-6xl mx-auto">
+          <div className="mt-10 max-w-6xl mx-auto">
             <AnimatedFeatures />
           </div>
 
@@ -110,7 +110,7 @@ export default function HomePage() {
           </div>
 
           {/* CTA - Moved up */}
-          <div className="mt-8 max-w-6xl mx-auto">
+          <div className="-mt-[20px] max-w-6xl mx-auto">
             <CTA
               title="Ready to stop guessing?"
               description="Join creators who know exactly what their audience wants."
